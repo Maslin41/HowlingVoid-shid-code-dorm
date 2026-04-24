@@ -486,7 +486,7 @@ GLOBAL_LIST_INIT(holiday_mail, list())
 	begin_month = JULY
 	holiday_hat = /obj/item/clothing/head/costume/nursehat
 	holiday_mail = list(
-		/obj/item/stack/medical/gauze,
+		/obj/item/stack/medical/wrap/gauze,
 		/obj/item/stack/medical/ointment,
 		/obj/item/storage/box/bandages,
 	)
@@ -592,13 +592,13 @@ GLOBAL_LIST_INIT(holiday_mail, list())
 // AUGUST
 
 /datum/holiday/ukraine
-	name = "День независимости Малоруссии"
+	name = "День независимости Украины"
 	begin_month = AUGUST
 	begin_day = 24
 	holiday_colors = list(COLOR_TRUE_BLUE, COLOR_TANGERINE_YELLOW)
 
 /datum/holiday/ukraine/getStationPrefix()
-	return pick("Киевская", "Малорусская", "Новоросская", "Слабожанщинская", "Галичинская")
+	return pick("Киевская", "Украинская", "Новоросская", "Слабожанщинская", "Галичинская", "Волынская", "Подольская", "Закарпатская")
 
 // SEPTEMBER
 

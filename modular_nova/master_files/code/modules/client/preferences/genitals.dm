@@ -36,9 +36,7 @@
 		mutant_bodypart.name = value
 		return TRUE
 
-	var/species_type = preferences.read_preference(/datum/preference/choiced/species)
-	var/datum/species/current_species = GLOB.species_prototypes[species_type]
-	target.dna.mutant_bodyparts[relevant_mutant_bodypart] = current_species.build_mutant_part(value)
+	target.dna.mutant_bodyparts[relevant_mutant_bodypart] = build_mutant_part(value)
 	return TRUE
 
 /datum/preference/choiced/genital/is_accessible(datum/preferences/preferences)
@@ -199,23 +197,8 @@
 	var/part_enabled = is_factual_sprite_accessory(relevant_mutant_bodypart, preferences.read_preference(/datum/preference/choiced/genital/penis))
 	return erp_allowed && part_enabled && (passed_initial_check || allowed)
 
-/// The difference between the absolute max length and the length for normal sized mobs
-#define PENIS_LENGTH_ABOVE_NORMAL PENIS_MAX_LENGTH - PENIS_MAX_LENGTH_NORMAL_SIZED
-
 /datum/preference/numeric/penis_length/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
-	// Adjust allowed size based on character size
-	var/body_size = preferences?.read_preference(/datum/preference/numeric/body_size) || BODY_SIZE_NORMAL
-	var/has_oversized_quirk = preferences?.all_quirks.Find(/datum/quirk/oversized::name)
-	// Clamp this for normal sized characters. Max allowed size is proportional to the mob's body_size, rounded up.
-	if(!has_oversized_quirk)
-		var/adjusted_size = PENIS_MAX_LENGTH_NORMAL_SIZED
-		if(body_size > 1)
-			adjusted_size = ceil(round(PENIS_MAX_LENGTH_NORMAL_SIZED, step) + ((((body_size - round(1, step)) * round(2, step))) * round(PENIS_LENGTH_ABOVE_NORMAL, step))) // floating point inaccuracy fun
-		if(value > adjusted_size)
-			value = adjusted_size
 	target.dna.features["penis_size"] = value
-
-#undef PENIS_LENGTH_ABOVE_NORMAL
 
 /datum/preference/numeric/penis_length/create_default_value() // if you change from this to PENIS_MAX_LENGTH the game should laugh at you
 	return round(max(PENIS_MIN_LENGTH, PENIS_DEFAULT_LENGTH))
@@ -353,7 +336,7 @@
 	savefile_key = "balls_size"
 	relevant_mutant_bodypart = ORGAN_SLOT_TESTICLES
 	minimum = 0
-	maximum = 6
+	maximum = TESTICLES_MAX_SIZE
 
 /datum/preference/numeric/balls_size/is_accessible(datum/preferences/preferences)
 	var/passed_initial_check = ..(preferences)
@@ -367,6 +350,65 @@
 
 /datum/preference/numeric/balls_size/create_default_value()
 	return 2
+
+// BUTT
+
+/datum/preference/choiced/genital/butt
+	savefile_key = "feature_butt"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	default_accessory_type = /datum/sprite_accessory/genital/butt/none
+
+/datum/preference/toggle/genital_skin_tone/butt
+	savefile_key = "butt_skin_tone"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	genital_pref_type = /datum/preference/choiced/genital/butt
+
+/datum/preference/toggle/genital_skin_tone/butt/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	target.dna.features["butt_uses_skintones"] = value
+
+/datum/preference/toggle/genital_skin_color/butt
+	savefile_key = "butt_skin_color"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	genital_pref_type = /datum/preference/choiced/genital/butt
+
+/datum/preference/toggle/genital_skin_color/butt/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	if(!..()) // Don't apply it if it failed the check in the parent.
+		value = FALSE
+
+	target.dna.features["butt_uses_skincolor"] = value
+
+/datum/preference/numeric/butt_size
+	category = PREFERENCE_CATEGORY_SECONDARY_FEATURES
+	savefile_identifier = PREFERENCE_CHARACTER
+	savefile_key = "butt_size"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	minimum = BUTT_MIN_SIZE
+	maximum = BUTT_MAX_SIZE
+
+/datum/preference/numeric/butt_size/is_accessible(datum/preferences/preferences)
+	var/passed_initial_check = ..(preferences)
+	var/allowed = preferences.read_preference(/datum/preference/toggle/allow_mismatched_parts)
+	var/erp_allowed = preferences.read_preference(/datum/preference/toggle/master_erp_preferences) && preferences.read_preference(/datum/preference/toggle/allow_genitals)
+	var/part_enabled = is_factual_sprite_accessory(relevant_mutant_bodypart, preferences.read_preference(/datum/preference/choiced/genital/butt))
+	return erp_allowed && part_enabled && (passed_initial_check || allowed)
+
+/datum/preference/numeric/butt_size/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	target.dna.features["butt_size"] = value
+
+/datum/preference/numeric/butt_size/create_default_value()
+	return BUTT_MIN_SIZE
+
+/datum/preference/tri_color/genital/butt
+	savefile_key = "butt_color"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	type_to_check = /datum/preference/choiced/genital/butt
+	skin_color_type = /datum/preference/toggle/genital_skin_color/butt
+
+/datum/preference/tri_bool/genital/butt
+	savefile_key = "butt_emissive"
+	relevant_mutant_bodypart = ORGAN_SLOT_BUTT
+	type_to_check = /datum/preference/choiced/genital/butt
+	skin_color_type = /datum/preference/toggle/genital_skin_color/butt
 
 // VAGINA
 
@@ -475,7 +517,16 @@
 	relevant_mutant_bodypart = ORGAN_SLOT_BREASTS
 
 /datum/preference/choiced/breasts_size/init_possible_values()
-	return GLOB.breast_size_to_number
+	return list(
+		BREAST_SIZE_FLATCHESTED,
+		BREAST_SIZE_A,
+		BREAST_SIZE_B,
+		BREAST_SIZE_C,
+		BREAST_SIZE_D,
+		BREAST_SIZE_E,
+		BREAST_SIZE_F,
+		BREAST_SIZE_G,
+	)
 
 /datum/preference/choiced/breasts_size/is_accessible(datum/preferences/preferences)
 	var/passed_initial_check = ..(preferences)
@@ -492,7 +543,71 @@
 
 // ANUS
 
+/datum/preference/choiced/genital/anus/deserialize(input, datum/preferences/preferences)
+	if(preferences.read_preference(/datum/preference/choiced/genital/butt) == SPRITE_ACCESSORY_NONE && input != SPRITE_ACCESSORY_NONE)
+		return /datum/sprite_accessory/genital/anus/normal::name
+	. = ..()
+
 /datum/preference/choiced/genital/anus
 	savefile_key = "feature_anus"
 	relevant_mutant_bodypart = ORGAN_SLOT_ANUS
 	default_accessory_type = /datum/sprite_accessory/genital/anus/none
+
+// BELLY
+
+/datum/preference/choiced/genital/belly
+	savefile_key = "feature_belly"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	default_accessory_type = /datum/sprite_accessory/genital/belly/none
+
+/datum/preference/numeric/belly_size
+	category = PREFERENCE_CATEGORY_SECONDARY_FEATURES
+	savefile_identifier = PREFERENCE_CHARACTER
+	savefile_key = "belly_size"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	minimum = BELLY_MIN_SIZE
+	maximum = BELLY_MAX_SIZE
+
+/datum/preference/numeric/belly_size/create_default_value()
+	return BELLY_MIN_SIZE
+
+/datum/preference/numeric/belly_size/is_accessible(datum/preferences/preferences)
+	var/passed_initial_check = ..(preferences)
+	var/allowed = preferences.read_preference(/datum/preference/toggle/allow_mismatched_parts)
+	var/erp_allowed = preferences.read_preference(/datum/preference/toggle/master_erp_preferences) && preferences.read_preference(/datum/preference/toggle/allow_genitals)
+	var/part_enabled = is_factual_sprite_accessory(relevant_mutant_bodypart, preferences.read_preference(/datum/preference/choiced/genital/belly))
+	return erp_allowed && part_enabled && (passed_initial_check || allowed)
+
+/datum/preference/numeric/belly_size/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	target.dna.features["belly_size"] = value
+
+/datum/preference/toggle/genital_skin_tone/belly
+	savefile_key = "belly_skin_tone"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	genital_pref_type = /datum/preference/choiced/genital/belly
+
+/datum/preference/toggle/genital_skin_tone/belly/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	target.dna.features["belly_uses_skintones"] = value
+
+/datum/preference/toggle/genital_skin_color/belly
+	savefile_key = "belly_skin_color"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	genital_pref_type = /datum/preference/choiced/genital/belly
+
+/datum/preference/toggle/genital_skin_color/belly/apply_to_human(mob/living/carbon/human/target, value, datum/preferences/preferences)
+	if(!..()) // Don't apply it if it failed the check in the parent.
+		value = FALSE
+
+	target.dna.features["belly_uses_skincolor"] = value
+
+/datum/preference/tri_color/genital/belly
+	savefile_key = "belly_color"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	type_to_check = /datum/preference/choiced/genital/belly
+	skin_color_type = /datum/preference/toggle/genital_skin_color/belly
+
+/datum/preference/tri_bool/genital/belly
+	savefile_key = "belly_emissive"
+	relevant_mutant_bodypart = ORGAN_SLOT_BELLY
+	type_to_check = /datum/preference/choiced/genital/belly
+	skin_color_type = /datum/preference/toggle/genital_skin_color/belly

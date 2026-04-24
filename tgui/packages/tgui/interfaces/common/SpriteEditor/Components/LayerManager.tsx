@@ -2,9 +2,9 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useBackend } from 'tgui/backend';
 import { Box, Button, Icon, Input, Section, Stack } from 'tgui-core/components';
 import type { BooleanStyleMap, StringStyleMap } from 'tgui-core/ui';
-import { usePreferencesLocalization } from '../../../localization';
 import { Dir, type InlineStyle, type SpriteData } from '../Types/types';
 import { AdvancedCanvas } from './AdvancedCanvas';
+import { usePreferencesLocalization } from '../../../localization';
 
 export type LayerManagerProps = {
   data: SpriteData;
@@ -32,7 +32,7 @@ export const LayerManager = (props: LayerManagerProps) => {
   const { width, height, dirs: iconDirs, layers } = data;
   const layerCount = layers.length;
   const cells = [
-    `". ${dirCellPrefixes.slice(0, iconDirs).join(' ')} add"`,
+    `". ${dirCellPrefixes.slice(0, iconDirs).join(' ')} ."`,
     ...Array.from(
       { length: layerCount },
       (_, i) =>
@@ -44,7 +44,22 @@ export const LayerManager = (props: LayerManagerProps) => {
   ].join(' ');
   return (
     <Box {...rest}>
-      <Section fill title={t('ui.sprite_editor.layers')}>
+      <Section
+        fill
+        title={t('ui.sprite_editor.layers')}
+        buttons={
+          <Button
+            icon="plus"
+            tooltip={t('ui.sprite_editor.add_layer')}
+            onClick={() =>
+              act('spriteEditorCommand', {
+                command: 'transaction',
+                transaction: { type: 'addLayer', name: 'Add Layer' },
+              })
+            }
+          />
+        }
+      >
         <Box
           width="100%"
           height="100%"
@@ -71,18 +86,6 @@ export const LayerManager = (props: LayerManagerProps) => {
                 }}
               />
             ))}
-          <Box style={{ gridArea: 'add' }}>
-            <Button
-              icon="plus"
-              tooltip={t('ui.sprite_editor.add_layer')}
-              onClick={() =>
-                act('spriteEditorCommand', {
-                  command: 'transaction',
-                  transaction: { type: 'addLayer', name: 'Add Layer' },
-                })
-              }
-            />
-          </Box>
           {layers.map((layer, i) => {
             const { name, data, visible } = layer;
             return (
@@ -130,8 +133,7 @@ export const LayerManager = (props: LayerManagerProps) => {
                       data={data[dir]!}
                       width={`${width}px`}
                       height={`${height}px`}
-                      ml="0.25rem"
-                      mr="0.25rem"
+                      m="0.25rem"
                       onClick={() => {
                         setSelectedDir(dir);
                         setSelectedLayer(i);
@@ -201,6 +203,7 @@ export const LayerManager = (props: LayerManagerProps) => {
                       <Button.Confirm
                         icon="xmark"
                         tooltip={t('ui.common.delete')}
+                        confirmIcon="xmark"
                         disabled={layerCount === 1}
                         onClick={() =>
                           act('spriteEditorCommand', {

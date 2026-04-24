@@ -354,6 +354,7 @@
 		else
 			playsound(src, 'modular_nova/modules/emotes/sound/emotes/Nose_boop.ogg', 50, 0)
 			helper.visible_message(span_notice("[helper] boops [src]'s nose."), span_notice("You boop [src] on the nose."))
+			SEND_SIGNAL(src, COMSIG_CARBON_NOSE_BOOPED, helper)
 			if(HAS_TRAIT(src, TRAIT_SENSITIVESNOUT) && is_location_accessible(BODY_ZONE_PRECISE_MOUTH))
 				var/datum/quirk/sensitivesnout/poor_snout = src.get_quirk(/datum/quirk/sensitivesnout)
 				poor_snout?.get_booped(helper)
@@ -382,10 +383,10 @@
 			if(src_tail && !(src_tail.wag_flags & WAG_WAGGING))
 				emote("wag")
 		//NOVA EDIT ADDITION END
-//Howling void addittion
+	//Howling void addittion
 	else if ((helper.zone_selected == BODY_ZONE_PRECISE_GROIN) && !isnull(src.get_organ_by_type(/obj/item/organ/tail)))
 		var/obj/item/organ/tail/tail = src.get_organ_slot(ORGAN_SLOT_EXTERNAL_TAIL)
-		if(istype(tail, /obj/item/organ/tail/lizard))
+		if(hv_can_species_autotomy_tail(src) && istype(tail, /obj/item/organ/tail))
 			helper.visible_message(
 				span_danger("[helper] pulls on [src]'s tail... and it rips off!"),
 				null,
@@ -510,7 +511,7 @@
 		return
 
 	var/embeds = FALSE
-	for(var/obj/item/bodypart/limb as anything in bodyparts)
+	for(var/obj/item/bodypart/limb as anything in get_bodyparts())
 		for(var/obj/item/weapon as anything in limb.embedded_objects)
 			if(!embeds)
 				embeds = TRUE
@@ -619,8 +620,7 @@
 
 /mob/living/carbon/get_organic_health()
 	. = health
-	for (var/_limb in bodyparts)
-		var/obj/item/bodypart/limb = _limb
+	for (var/obj/item/bodypart/limb as anything in get_bodyparts())
 		if (!IS_ORGANIC_LIMB(limb))
 			. += (limb.brute_dam * limb.body_damage_coeff) + (limb.burn_dam * limb.body_damage_coeff)
 

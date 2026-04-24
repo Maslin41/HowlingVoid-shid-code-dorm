@@ -10,6 +10,7 @@ export type InterfaceLanguage = 'english' | 'russian';
 
 const EN_UI_BY_KEY = uiEn as Record<string, string>;
 const RU_UI_BY_KEY = uiRu as Record<string, string>;
+const INTERFACE_LANGUAGE_STORAGE_KEY = 'howling_void.interface_language';
 
 const UI_BY_LANGUAGE: Record<InterfaceLanguage, Record<string, string>> = {
   english: EN_UI_BY_KEY,
@@ -37,12 +38,24 @@ const CHARACTER_FEATURE_ID_ALIASES: Record<string, string> = {
   allow_emissives_toggle: 'allow_emissives',
   allow_mismatched_parts_toggle: 'allow_mismatched_parts',
   feature_anus: 'anus_choice',
+  feature_belly: 'belly_choice',
   feature_breasts: 'breast_choice',
+  feature_butt: 'butt_choice',
+  belly_color: 'belly_color',
+  belly_emissive: 'belly_emissives',
+  belly_size: 'belly_size',
+  belly_skin_color: 'belly_use_skin_color',
+  belly_skin_tone: 'belly_use_skin_tone',
   breasts_color: 'breast_color',
   breasts_lactation_toggle: 'breast_lactation',
   breasts_size: 'breast_size',
   breasts_skin_color: 'breasts_use_skin_color',
   breasts_skin_tone: 'breasts_use_skin_tone',
+  butt_color: 'butt_color',
+  butt_emissive: 'butt_emissives',
+  butt_size: 'butt_size',
+  butt_skin_color: 'butt_use_skin_color',
+  butt_skin_tone: 'butt_use_skin_tone',
   caps_toggle: 'cap',
   feature_caps: 'cap_selection',
   caps_color: 'cap_colors',
@@ -206,6 +219,39 @@ function toDataId(value: string): string {
     .replace(/^_+|_+$/g, '');
 
   return normalized || 'unknown';
+}
+
+function rememberInterfaceLanguage(language: InterfaceLanguage) {
+  try {
+    (globalThis as any).__HOWLING_INTERFACE_LANGUAGE = language;
+  } catch {
+    // Ignore write failures in restricted environments.
+  }
+
+  try {
+    globalThis?.localStorage?.setItem(INTERFACE_LANGUAGE_STORAGE_KEY, language);
+  } catch {
+    // Ignore storage failures such as disabled localStorage.
+  }
+}
+
+function getRememberedInterfaceLanguage(): InterfaceLanguage | null {
+  const rememberedGlobal = normalizeLanguage(
+    (globalThis as any)?.__HOWLING_INTERFACE_LANGUAGE,
+  );
+  if (rememberedGlobal) {
+    return rememberedGlobal;
+  }
+
+  const rememberedStored = normalizeLanguage(
+    globalThis?.localStorage?.getItem(INTERFACE_LANGUAGE_STORAGE_KEY),
+  );
+  if (rememberedStored) {
+    rememberInterfaceLanguage(rememberedStored);
+    return rememberedStored;
+  }
+
+  return null;
 }
 
 const DATA_ID_PREFIXES = [
@@ -494,8 +540,14 @@ export function getCharacterPreferencesLanguage(data: any): InterfaceLanguage {
   for (const raw of candidates) {
     const detected = extractLanguage(raw);
     if (detected) {
+      rememberInterfaceLanguage(detected);
       return detected;
     }
+  }
+
+  const rememberedLanguage = getRememberedInterfaceLanguage();
+  if (rememberedLanguage) {
+    return rememberedLanguage;
   }
 
   // Final fallback for interfaces that do not receive language in payload.
@@ -504,6 +556,7 @@ export function getCharacterPreferencesLanguage(data: any): InterfaceLanguage {
     (globalThis as any)?.navigator?.language,
   );
   if (navigatorDetected) {
+    rememberInterfaceLanguage(navigatorDetected);
     return navigatorDetected;
   }
 

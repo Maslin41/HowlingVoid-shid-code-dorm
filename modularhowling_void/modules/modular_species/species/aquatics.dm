@@ -189,6 +189,7 @@
 	return FALSE
 
 /datum/species/aquatic/proc/on_nose_boop(mob/living/carbon/human/source, mob/living/carbon/helper)
+	SIGNAL_HANDLER
 	if(!source?.is_location_accessible(BODY_ZONE_PRECISE_MOUTH))
 		return
 
@@ -316,9 +317,9 @@
 	aquatic.dna.features[FEATURE_MUTANT_COLOR] = main_color
 	aquatic.dna.features[FEATURE_MUTANT_COLOR_TWO] = secondary_color
 	aquatic.dna.features[FEATURE_MUTANT_COLOR_THREE] = tertiary_color
-	aquatic.dna.mutant_bodyparts[FEATURE_TAIL] = aquatic.dna.species.build_mutant_part("Shark", list(main_color, secondary_color, tertiary_color))
-	aquatic.dna.mutant_bodyparts[FEATURE_SNOUT] = aquatic.dna.species.build_mutant_part("hShark", list(main_color, secondary_color, tertiary_color))
-	aquatic.dna.mutant_bodyparts[FEATURE_EARS] = aquatic.dna.species.build_mutant_part("Sergal", list(main_color, secondary_color, tertiary_color))
+	aquatic.dna.mutant_bodyparts[FEATURE_TAIL] = build_mutant_part("Shark", list(main_color, secondary_color, tertiary_color))
+	aquatic.dna.mutant_bodyparts[FEATURE_SNOUT] = build_mutant_part("hShark", list(main_color, secondary_color, tertiary_color))
+	aquatic.dna.mutant_bodyparts[FEATURE_EARS] = build_mutant_part("Sergal", list(main_color, secondary_color, tertiary_color))
 	aquatic.dna.features[FEATURE_LEGS] = NORMAL_LEGS
 	regenerate_organs(aquatic, src, visual_only = TRUE)
 	aquatic.update_body(TRUE)
@@ -327,19 +328,19 @@
 	var/list/perks = list()
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_POSITIVE_PERK,
-		SPECIES_PERK_ICON = FA_ICON_TOOTH,
+		SPECIES_PERK_ICON = FA_ICON_HAND_BACK_FIST,
 		SPECIES_PERK_NAME = "Sharp Claws",
 		SPECIES_PERK_DESC = "Your claws are sharp enough to deal meaningful damage without weapons. In melee, you hit harder and tear through weak materials more easily.",
 	))
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_POSITIVE_PERK,
-		SPECIES_PERK_ICON = FA_ICON_PERSON_WALKING,
+		SPECIES_PERK_ICON = FA_ICON_FISH,
 		SPECIES_PERK_NAME = "Like a Fish in Water",
 		SPECIES_PERK_DESC = "You move through space with ease, as if you were swimming.",
 	))
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_POSITIVE_PERK,
-		SPECIES_PERK_ICON = FA_ICON_HAND,
+		SPECIES_PERK_ICON = FA_ICON_WATER,
 		SPECIES_PERK_NAME = "Aquatic Nature",
 		SPECIES_PERK_DESC = "Wet surfaces are your home turf. You do not slip on them.",
 	))
@@ -351,19 +352,19 @@
 	))
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_NEUTRAL_PERK,
-		SPECIES_PERK_ICON = FA_ICON_ARROW_DOWN,
+		SPECIES_PERK_ICON = FA_ICON_TEMPERATURE_HALF,
 		SPECIES_PERK_NAME = "Thermoregulation",
 		SPECIES_PERK_DESC = "Your body handles cold worse, but tolerates heat better.",
 	))
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_NEGATIVE_PERK,
-		SPECIES_PERK_ICON = FA_ICON_SHIRT,
+		SPECIES_PERK_ICON = FA_ICON_DROPLET,
 		SPECIES_PERK_NAME = "Salty Blood",
 		SPECIES_PERK_DESC = "Your blood has elevated salinity - it purges toxins faster, but handles medicine worse.",
 	))
 	perks += list(list(
 		SPECIES_PERK_TYPE = SPECIES_NEUTRAL_PERK,
-		SPECIES_PERK_ICON = FA_ICON_ARROW_DOWN,
+		SPECIES_PERK_ICON = FA_ICON_WIND,
 		SPECIES_PERK_NAME = "Sensitive Snout",
 		SPECIES_PERK_DESC = "Your snout is more sensitive to hits and even occasional light touches.",
 	))

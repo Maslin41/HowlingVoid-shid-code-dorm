@@ -74,7 +74,7 @@ const RequestLogsScreen = (props) => {
               <Table.Cell>{t('ui.common.delete')}</Table.Cell>
               <Table.Cell>{t('ui.common.message')}</Table.Cell>
               <Table.Cell>{t('ui.message_monitor.stamp')}</Table.Cell>
-              <Table.Cell>{t('ui.common.department')}</Table.Cell>
+              <Table.Cell>{t('ui.message_monitor.department')}</Table.Cell>
               <Table.Cell>{t('ui.message_monitor.authentication')}</Table.Cell>
             </Table.Row>
             {requests?.map((request) => (
@@ -121,8 +121,8 @@ const MessageLogsScreen = (props) => {
           <Table>
             <Table.Row header>
               <Table.Cell>{t('ui.common.delete')}</Table.Cell>
-              <Table.Cell>{t('ui.common.sender')}</Table.Cell>
-              <Table.Cell>{t('ui.common.recipient')}</Table.Cell>
+              <Table.Cell>{t('ui.message_monitor.sender')}</Table.Cell>
+              <Table.Cell>{t('ui.message_monitor.recipient')}</Table.Cell>
               <Table.Cell>{t('ui.common.message')}</Table.Cell>
             </Table.Row>
             {messages?.map((message) => (
@@ -152,16 +152,18 @@ const MessageLogsScreen = (props) => {
 };
 
 const HackedScreen = (props) => {
+  const { data } = useBackend<Data>();
+  const { t } = usePreferencesLocalization(data);
   return (
     <Stack.Item grow>
       <Stack fill vertical>
         <Stack.Item grow />
         <Stack.Item align="center" grow>
           <Box color="red" fontSize="18px" bold mt={5}>
-            E%*#OR: CRIT#%^CAL Ss&@STEM Fai++~|URE...
+            {t('ui.message_monitor.hacked_error')}
           </Box>
           <Box color="red" fontSize="18px" bold mt={5}>
-            EN*bLING u&*E REB-00T ProT/.\;L...
+            {t('ui.message_monitor.hacked_reboot')}
           </Box>
         </Stack.Item>
       </Stack>
@@ -186,7 +188,7 @@ const MainScreenAuth = (props: AuthScreenProps) => {
             placeholder={t('ui.common.password')}
           />
           <Button
-            content={t('ui.common.logout')}
+            content={t('ui.message_monitor.logout')}
             onClick={() => act('auth', { auth_password: auth_password })}
           />
           <Button
@@ -198,7 +200,7 @@ const MainScreenAuth = (props: AuthScreenProps) => {
           {is_malf === 1 && (
             <Button
               icon="terminal"
-              content={t('ui.common.hack')}
+              content={t('ui.message_monitor.hack')}
               color="red"
               disabled
               onClick={() => act('hack')}
@@ -208,7 +210,7 @@ const MainScreenAuth = (props: AuthScreenProps) => {
       </Stack.Item>
       <Table>
         <Table.Row header>
-          <Table.Cell>{t('ui.common.option')}</Table.Cell>
+          <Table.Cell>{t('ui.message_monitor.choose_option')}</Table.Cell>
           <Table.Cell>{t('ui.common.description')}</Table.Cell>
         </Table.Row>
         <Table.Row>
@@ -223,17 +225,15 @@ const MainScreenAuth = (props: AuthScreenProps) => {
         <Table.Row>
           <Table.Cell>
             <Button
-              content={t('ui.message_monitor.view_request_console_logs')}
+              content={t('ui.message_monitor.view_request_logs')}
               onClick={() => act('view_request_logs')}
             />
           </Table.Cell>
-          <Table.Cell>
-            {t('ui.message_monitor.shows_all_request_orders')}
-          </Table.Cell>
+          <Table.Cell>{t('ui.message_monitor.shows_all_request_orders')}</Table.Cell>
         </Table.Row>
         <Table.Row>
           <Table.Cell>
-            <Button
+            <Button.Confirm
               content={t('ui.message_monitor.clear_message_logs')}
               onClick={() => act('clear_message_logs')}
             />
@@ -242,8 +242,8 @@ const MainScreenAuth = (props: AuthScreenProps) => {
         </Table.Row>
         <Table.Row>
           <Table.Cell>
-            <Button
-              content={t('ui.message_monitor.clear_request_console_logs')}
+            <Button.Confirm
+              content={t('ui.message_monitor.clear_request_logs')}
               onClick={() => act('clear_request_logs')}
             />
           </Table.Cell>
@@ -305,7 +305,7 @@ const MainScreenNotAuth = (props: AuthScreenProps) => {
           </Button>
           {!!is_malf && (
             <Button color="red" onClick={() => act('hack')}>
-              {t('ui.common.hack')}
+              {t('ui.message_monitor.hack')}
             </Button>
           )}
         </Section>
@@ -314,7 +314,7 @@ const MainScreenNotAuth = (props: AuthScreenProps) => {
         <Section fill scrollable title={t('ui.message_monitor.choose_option')}>
           <Table>
             <Table.Row header>
-              <Table.Cell>{t('ui.common.option')}</Table.Cell>
+              <Table.Cell>{t('ui.message_monitor.choose_option')}</Table.Cell>
               <Table.Cell>{t('ui.common.description')}</Table.Cell>
             </Table.Row>
             <Table.Row>
@@ -335,6 +335,7 @@ const MainScreenNotAuth = (props: AuthScreenProps) => {
 
 const MainScreen = (props) => {
   const { data } = useBackend<Data>();
+  const { t } = usePreferencesLocalization(data);
   const { auth, password } = data;
 
   const [auth_password, setPassword] = useState(password);
@@ -358,7 +359,6 @@ const MainScreen = (props) => {
 
 export const MessageMonitor = (props) => {
   const { act, data } = useBackend<Data>();
-  const { t } = usePreferencesLocalization(data);
   const {
     screen,
     error_message,
@@ -394,7 +394,7 @@ export const MessageMonitor = (props) => {
                 )}
               </Stack.Item>
               <label>
-                {t('ui.message_monitor.regulation_514_notice')}
+                {t('ui.message_monitor.regulation_514')}
               </label>
             </>
           ) : (

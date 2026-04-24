@@ -68,6 +68,7 @@ export function Checkout(props) {
 function CheckoutModal(props) {
   const { act, data } = useBackend<LibraryConsoleData>();
   const { t } = usePreferencesLocalization(data);
+  const { checkout_title } = data;
 
   const inventory = data.inventory
     .map((book, i) => ({
@@ -80,7 +81,6 @@ function CheckoutModal(props) {
   const { checkoutBookState } = useLibraryContext();
   const [checkoutBook, setCheckoutBook] = checkoutBookState;
 
-  const [bookName, setBookName] = useState(t('ui.library.insert_book_name'));
   const [checkoutee, setCheckoutee] = useState(t('ui.library.recipient'));
   const [checkoutPeriod, setCheckoutPeriod] = useState(5);
 
@@ -94,9 +94,15 @@ function CheckoutModal(props) {
           <Dropdown
             over
             width="100%"
-            selected={bookName}
+            selected={checkout_title}
+            placeholder={t('ui.library.insert_book_name')}
+            displayText={checkout_title}
             options={inventory.map((book) => book.title)}
-            onSelected={(e) => setBookName(e)}
+            onSelected={(e) => {
+              act('set_checkout', {
+                book_name: e,
+              });
+            }}
           />
         </Stack.Item>
         <Stack.Item>
@@ -113,7 +119,7 @@ function CheckoutModal(props) {
                 value={checkoutPeriod}
                 unit={` ${t('ui.library.minutes')}`}
                 minValue={1}
-                maxValue={1440}
+                maxValue={120}
                 step={1}
                 stepPixelSize={10}
                 onChange={(value) => setCheckoutPeriod(value)}
@@ -131,7 +137,6 @@ function CheckoutModal(props) {
                 onClick={() => {
                   setCheckoutBook(false);
                   act('checkout', {
-                    book_name: bookName,
                     loaned_to: checkoutee,
                     checkout_time: checkoutPeriod,
                   });
@@ -149,7 +154,7 @@ function CheckoutModal(props) {
                 onClick={() => setCheckoutBook(false)}
                 lineHeight={2}
               >
-                {t('ui.common.return')}
+                {t('ui.library_admin.return')}
               </Button>
             </Stack.Item>
           </Stack>

@@ -185,14 +185,14 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 		if(parent.hotkeys)
 			for(var/hotkeytobind in kb.hotkey_keys)
-				if(hotkeytobind == "Unbound")
+				if(hotkeytobind == UNBOUND_KEY)
 					addedbind = TRUE
 				else if(!length(binds_by_key[hotkeytobind])) //Only bind to the key if nothing else is bound
 					key_bindings[kb.name] |= hotkeytobind
 					addedbind = TRUE
 		else
 			for(var/classickeytobind in kb.classic_keys)
-				if(classickeytobind == "Unbound")
+				if(classickeytobind == UNBOUND_KEY)
 					addedbind = TRUE
 				else if(!length(binds_by_key[classickeytobind])) //Only bind to the key if nothing else is bound
 					key_bindings[kb.name] |= classickeytobind
@@ -200,7 +200,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 		if(!addedbind)
 			notadded += kb
-	save_preferences() //Save the players pref so that new keys that were set to Unbound as default are permanently stored
+	save_preferences() //Save the players pref so that new keys that were set to UNBOUND_KEY as default are permanently stored
 	if(length(notadded))
 		addtimer(CALLBACK(src, PROC_REF(announce_conflict), notadded), 5 SECONDS)
 
@@ -264,6 +264,15 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	// Custom hotkeys
 	key_bindings = savefile.get_entry("key_bindings")
 
+	var/datum/preference/show_in_directory_pref = GLOB.preference_entries[/datum/preference/toggle/show_in_directory]
+	var/list/player_save_data = savefile.get_entry()
+	var/show_in_directory_key = show_in_directory_pref.savefile_key
+	var/normalized_show_in_directory = FALSE
+
+	if(!isnull(player_save_data) && (show_in_directory_key in player_save_data) && !player_save_data[show_in_directory_key])
+		write_preference(show_in_directory_pref, TRUE)
+		normalized_show_in_directory = TRUE
+
 	//try to fix any outdated data if necessary
 	if(SHOULD_UPDATE_DATA(data_validity_integer))
 		var/bacpath = PREFS_BACKUP_PATH(path) //todo: if the savefile version is higher then the server, check the backup, and give the player a prompt to load the backup
@@ -301,6 +310,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		default_slot = old_default_slot
 		max_save_slots = old_max_save_slots
 		save_preferences()
+	else if(normalized_show_in_directory)
+		savefile.save()
 
 	return TRUE
 
