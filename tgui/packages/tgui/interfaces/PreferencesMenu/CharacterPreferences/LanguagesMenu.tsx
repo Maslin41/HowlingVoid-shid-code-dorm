@@ -4,6 +4,64 @@ import { BlockQuote, Box, Button, Section, Stack } from 'tgui-core/components';
 import type { Language, PreferencesMenuData } from '../types';
 import { usePreferencesLocalization } from './localization';
 
+function normalizeLanguageDataId(value: string) {
+  return (value ?? '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[:]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function getLanguageDataKeyCandidates(
+  language: Language,
+  suffix: 'name' | 'description',
+) {
+  const explicitId = language[`${suffix}_id` as 'name_id' | 'description_id'];
+  if (explicitId) {
+    return [explicitId];
+  }
+
+  const normalizedName = normalizeLanguageDataId(language.name);
+  const normalizedIcon = normalizeLanguageDataId(language.icon);
+
+  return [
+    `language_${normalizedName}_${suffix}`,
+    `language_${normalizedIcon}_${suffix}`,
+    `language_${language.icon}_${suffix}`,
+  ];
+}
+
+function getLocalizedLanguageField(
+  t: (key: string, fallback?: string) => string,
+  localizeDataLabelById: (id: string, fallback?: string) => string,
+  language: Language,
+  suffix: 'name' | 'description',
+  fallback: string,
+) {
+  const missing = '__HOWLING_MISSING_TRANSLATION__';
+
+  for (const key of getLanguageDataKeyCandidates(language, suffix)) {
+    const translated = t(`ui.character.data.${key}`, missing);
+    if (translated !== missing) {
+      return translated;
+    }
+
+    const localized = localizeDataLabelById(key, missing);
+    if (localized !== missing) {
+      return localized;
+    }
+  }
+
+  const localizedFallback = localizeDataLabelById(fallback, missing);
+  if (localizedFallback !== missing) {
+    return localizedFallback;
+  }
+
+  return fallback;
+}
+
 export function KnownLanguage(props: { language: Language }) {
   const { act, data } = useBackend<PreferencesMenuData>();
   const { t, localizeDataLabelById } =
@@ -21,9 +79,11 @@ export function KnownLanguage(props: { language: Language }) {
               className={`languages16x16 ${props.language.icon}`}
             />
             <Box inline>
-              {localizeDataLabelById(
-                props.language.name_id ??
-                  `language_${props.language.icon}_name`,
+              {getLocalizedLanguageField(
+                t,
+                localizeDataLabelById,
+                props.language,
+                'name',
                 props.language.name,
               )}
             </Box>
@@ -31,9 +91,11 @@ export function KnownLanguage(props: { language: Language }) {
         }
       >
         <BlockQuote>
-          {localizeDataLabelById(
-            props.language.description_id ??
-              `language_${props.language.icon}_description`,
+          {getLocalizedLanguageField(
+            t,
+            localizeDataLabelById,
+            props.language,
+            'description',
             props.language.description,
           )}
         </BlockQuote>
@@ -101,9 +163,11 @@ export function UnknownLanguage(props: { language: Language }) {
               className={`languages16x16 ${props.language.icon}`}
             />
             <Box inline>
-              {localizeDataLabelById(
-                props.language.name_id ??
-                  `language_${props.language.icon}_name`,
+              {getLocalizedLanguageField(
+                t,
+                localizeDataLabelById,
+                props.language,
+                'name',
                 props.language.name,
               )}
             </Box>
@@ -111,9 +175,11 @@ export function UnknownLanguage(props: { language: Language }) {
         }
       >
         <BlockQuote>
-          {localizeDataLabelById(
-            props.language.description_id ??
-              `language_${props.language.icon}_description`,
+          {getLocalizedLanguageField(
+            t,
+            localizeDataLabelById,
+            props.language,
+            'description',
             props.language.description,
           )}
         </BlockQuote>
@@ -219,4 +285,3 @@ export function LanguagesPage() {
     </Box>
   );
 }
-

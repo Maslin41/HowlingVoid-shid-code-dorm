@@ -33,14 +33,17 @@
 /datum/supply_pack/companies/ballistics/sol_fed/longarm/scar
 	contains = list(/obj/item/gun/ballistic/automatic/scar)
 	cost = 3000
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/ballistics/sol_fed/longarm/m16
 	contains = list(/obj/item/gun/ballistic/automatic/m16)
 	cost = 3000
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/ballistics/sol_fed/longarm/m16modern
 	contains = list(/obj/item/gun/ballistic/automatic/m16/modern)
 	cost = 3200
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/ballistics/sol_fed/longarm/mp5
 	contains = list(/obj/item/gun/ballistic/automatic/mp5)
@@ -150,18 +153,23 @@
 /datum/supply_pack/companies/mags_and_ammo/m16
 	contains = list(/obj/item/ammo_box/magazine/m16)
 	cost = 100
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/mags_and_ammo/m16vintage
 	contains = list(/obj/item/ammo_box/magazine/m16/vintage)
 	cost = 50
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/mags_and_ammo/m16patriot
 	contains = list(/obj/item/ammo_box/magazine/m16/patriot)
 	cost = 300
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
 
 /datum/supply_pack/companies/mags_and_ammo/scar
 	contains = list(/obj/item/ammo_box/magazine/scar)
 	cost = 100
+	order_flags = ORDER_GOODY | ORDER_CONTRABAND
+
 /*
 /datum/supply_pack/companies/mags_and_ammo/p90
 	contains = list(/obj/item/ammo_box/magazine/p90)

@@ -360,6 +360,11 @@
 	)
 
 /datum/component/interactable/proc/build_erp_preferences_data(mob/living/carbon/human/user)
+	var/datum/preference/choiced/erp_status/pref_erp_status = GLOB.preference_entries[/datum/preference/choiced/erp_status]
+	var/datum/preference/choiced/erp_status_mechanics/pref_erp_status_mechanics = GLOB.preference_entries[/datum/preference/choiced/erp_status_mechanics]
+	var/datum/preference/choiced/erp_status_nc/pref_erp_status_nc = GLOB.preference_entries[/datum/preference/choiced/erp_status_nc]
+	var/datum/preference/choiced/erp_status_hypno/pref_erp_status_hypno = GLOB.preference_entries[/datum/preference/choiced/erp_status_hypno]
+	var/datum/preference/choiced/erp_status_v/pref_erp_status_v = GLOB.preference_entries[/datum/preference/choiced/erp_status_v]
 	var/list/specs = list(
 		list("id" = "erp_pref", "name" = "ERP Interaction", "description" = "Allows ERP interactions and lets other players know you are open to them.", "type" = "toggle", "category" = "ERP", "path" = /datum/preference/toggle/erp),
 		list("id" = "erp_sounds_pref", "name" = "ERP Sounds", "description" = "Hear sounds from ERP interactions and stimuli.", "type" = "toggle", "category" = "ERP", "path" = /datum/preference/toggle/erp/sounds),
@@ -375,11 +380,11 @@
 		list("id" = "penis_enlargement_pref", "name" = "Penis Enlargement", "description" = "Allow penis enlargement effects.", "type" = "toggle", "category" = "ERP", "path" = /datum/preference/toggle/erp/penis_enlargement),
 		list("id" = "genitalia_removal_pref", "name" = "ERP Genitalia Removal", "description" = "Allow removal of existing genitalia.", "type" = "toggle", "category" = "ERP", "path" = /datum/preference/toggle/erp/genitalia_removal),
 		list("id" = "penis_shrinkage_pref", "name" = "Penis Shrinkage", "description" = "Allow penis shrinkage effects.", "type" = "toggle", "category" = "ERP", "path" = /datum/preference/toggle/erp/penis_shrinkage),
-		list("id" = "erp_status_pref", "name" = "ERP Status", "description" = "Your general ERP role/status preference.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status, "choices" = GLOB.preference_entries[/datum/preference/choiced/erp_status].init_possible_values()),
-		list("id" = "erp_status_mechanical_pref", "name" = "ERP Mechanical Status", "description" = "Your preference for ERP with mechanical consequences.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_mechanics, "choices" = GLOB.preference_entries[/datum/preference/choiced/erp_status_mechanics].init_possible_values()),
-		list("id" = "erp_status_noncon_pref", "name" = "ERP Non-Con Status", "description" = "Your preference for non-consensual ERP themes.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_nc, "choices" = GLOB.preference_entries[/datum/preference/choiced/erp_status_nc].init_possible_values()),
-		list("id" = "erp_status_hypnosis_pref", "name" = "ERP Hypnosis Status", "description" = "Your preference for hypnosis-related ERP content.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_hypno, "choices" = GLOB.preference_entries[/datum/preference/choiced/erp_status_hypno].init_possible_values()),
-		list("id" = "erp_status_vore_pref", "name" = "ERP Vore Status", "description" = "Your preference for vore-related ERP content.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_v, "choices" = GLOB.preference_entries[/datum/preference/choiced/erp_status_v].init_possible_values()),
+		list("id" = "erp_status_pref", "name" = "ERP Status", "description" = "Your general ERP role/status preference.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status, "choices" = pref_erp_status.init_possible_values()),
+		list("id" = "erp_status_mechanical_pref", "name" = "ERP Mechanical Status", "description" = "Your preference for ERP with mechanical consequences.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_mechanics, "choices" = pref_erp_status_mechanics.init_possible_values()),
+		list("id" = "erp_status_noncon_pref", "name" = "ERP Non-Con Status", "description" = "Your preference for non-consensual ERP themes.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_nc, "choices" = pref_erp_status_nc.init_possible_values()),
+		list("id" = "erp_status_hypnosis_pref", "name" = "ERP Hypnosis Status", "description" = "Your preference for hypnosis-related ERP content.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_hypno, "choices" = pref_erp_status_hypno.init_possible_values()),
+		list("id" = "erp_status_vore_pref", "name" = "ERP Vore Status", "description" = "Your preference for vore-related ERP content.", "type" = "choice", "category" = "ERP", "path" = /datum/preference/choiced/erp_status_v, "choices" = pref_erp_status_v.init_possible_values()),
 	)
 	return build_preferences_data_from_specs(user, specs)
 
@@ -647,14 +652,14 @@
 
 	switch(slot_index)
 		if(ORGAN_SLOT_NIPPLES)
-			return target.get_lewd_part_state("nipples") == "open"
+			return target.has_breasts(REQUIRE_GENITAL_EXPOSED)
 
 		if(ORGAN_SLOT_PENIS)
-			return target.get_lewd_part_state("penis") == "open"
+			return target.has_penis(REQUIRE_GENITAL_EXPOSED)
 		if(ORGAN_SLOT_VAGINA)
-			return target.get_lewd_part_state("vagina") == "open"
+			return target.has_vagina(REQUIRE_GENITAL_EXPOSED)
 		if(ORGAN_SLOT_ANUS)
-			return target.get_lewd_part_state("anus") == "open"
+			return target.has_anus(REQUIRE_GENITAL_EXPOSED)
 
 /// Decides if a player should be able to insert or remove an item from a provided lewd slot_index.
 /datum/component/interactable/proc/is_toy_compatible(obj/item/clothing/sextoy/item, slot_index)

@@ -1,5 +1,6 @@
 // THIS IS A NOVA SECTOR UI FILE
-import { useState } from 'react';
+import { storage } from 'common/storage';
+import { useEffect, useMemo, useState } from 'react';
 import { useBackend } from '../../backend';
 import type { BooleanLike } from 'tgui-core/react';
 import {
@@ -36,6 +37,11 @@ type Interaction = {
   erp_interaction: BooleanLike;
   use_subtler: BooleanLike;
   erp_subtle_max_length: number;
+  ref_self?: string;
+  ref_user?: string;
+  self?: string;
+  user_name?: string;
+  target_name?: string;
   categories: string[];
   interactions: Record<string, string[]>;
   erp_categories: string[];
@@ -51,18 +57,99 @@ export const MainContent = () => {
   const [activeTab, setActiveTab] = useState('interactions');
   const [showCategories, setShowCategories] = useState(true);
   const [subtleMessage, setSubtleMessage] = useState('');
+  const [savedDraft, setSavedDraft] = useState('');
+  const [draftReady, setDraftReady] = useState(false);
   const { act, data } = useBackend<Interaction>();
   const { t } = usePreferencesLocalization(data);
   const {
     erp_interaction,
     use_subtler,
     erp_subtle_max_length = 2048,
+    ref_self,
+    ref_user,
+    self,
+    user_name,
+    target_name,
     categories = [],
     interactions = {},
     erp_categories = [],
     erp_interactions = {},
     erp_preferences = [],
   } = data;
+
+  const stableDraftTarget = target_name || self || 'unknown';
+  const stableDraftUser = user_name || 'unknown';
+  const subtleDraftKey = useMemo(
+    () => `interaction-panel-subtle-draft:${stableDraftUser}:${stableDraftTarget}`,
+    [stableDraftTarget, stableDraftUser],
+  );
+  const legacySubtleDraftKey = useMemo(
+    () => `interaction-panel-subtle-draft:${ref_user || 'unknown'}:${ref_self || 'unknown'}`,
+    [ref_self, ref_user],
+  );
+
+  const readDraftFromLocalStorage = () => {
+    try {
+      return window.localStorage?.getItem(subtleDraftKey) || '';
+    } catch {
+      return '';
+    }
+  };
+
+  const writeDraftToLocalStorage = (value: string) => {
+    try {
+      if (value.length) {
+        window.localStorage?.setItem(subtleDraftKey, value);
+      } else {
+        window.localStorage?.removeItem(subtleDraftKey);
+      }
+    } catch {
+      // Ignore local storage failures and fall back to TGUI storage.
+    }
+  };
+
+  const persistDraft = (value: string) => {
+    const nextValue = String(value || '').slice(0, erp_subtle_max_length);
+    writeDraftToLocalStorage(nextValue);
+    setSavedDraft(nextValue);
+
+    if (nextValue.length) {
+      storage.set(subtleDraftKey, nextValue);
+      return;
+    }
+
+    storage.remove(subtleDraftKey);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    setDraftReady(false);
+
+    const loadDraft = async () => {
+      const immediateDraft = readDraftFromLocalStorage();
+      const storedDraft =
+        immediateDraft ||
+        (await storage.get(subtleDraftKey)) ||
+        (await storage.get(legacySubtleDraftKey)) ||
+        '';
+      if (cancelled) {
+        return;
+      }
+      if (storedDraft && legacySubtleDraftKey !== subtleDraftKey) {
+        writeDraftToLocalStorage(String(storedDraft));
+        storage.set(subtleDraftKey, String(storedDraft));
+        storage.remove(legacySubtleDraftKey);
+      }
+      setSavedDraft(String(storedDraft).slice(0, erp_subtle_max_length));
+      setDraftReady(true);
+    };
+
+    loadDraft();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [legacySubtleDraftKey, subtleDraftKey, erp_subtle_max_length]);
 
   const availableTabs = [
     {
@@ -156,9 +243,24 @@ export const MainContent = () => {
                   <Section
                     title={t('ui.interaction_panel.custom_subtle_title')}
                     buttons={(
-                      <Box color="label">
-                        {subtleMessage.length}/{erp_subtle_max_length}
-                      </Box>
+                      <Stack align="center" spacing={1}>
+                        {!!savedDraft.length && (
+                          <Stack.Item>
+                            <Button
+                              color="transparent"
+                              tooltip={t('ui.interaction_panel.custom_subtle_draft_saved')}
+                          onClick={() => setSubtleMessage(savedDraft)}
+                            >
+                              {t('ui.interaction_panel.custom_subtle_draft_saved')}
+                            </Button>
+                          </Stack.Item>
+                        )}
+                        <Stack.Item>
+                          <Box color="label">
+                            {subtleMessage.length}/{erp_subtle_max_length}
+                          </Box>
+                        </Stack.Item>
+                      </Stack>
                     )}
                   >
                     <Stack vertical>
@@ -185,10 +287,13 @@ export const MainContent = () => {
                           value={subtleMessage}
                           placeholder={t('ui.interaction_panel.custom_subtle_placeholder')}
                           onChange={(value) =>
-                            setSubtleMessage(
-                              String(value || '').slice(0, erp_subtle_max_length),
-                            )
-                          }
+                            {
+                              const nextValue = String(value || '').slice(0, erp_subtle_max_length);
+                              setSubtleMessage(nextValue);
+                              if (draftReady) {
+                                persistDraft(nextValue);
+                              }
+                            }}
                         />
                       </Stack.Item>
                       <Stack.Item>
@@ -202,6 +307,7 @@ export const MainContent = () => {
                               message: subtleMessage,
                             });
                             setSubtleMessage('');
+                            persistDraft('');
                           }}
                         >
                           {t('ui.interaction_panel.custom_subtle_send_message')}
