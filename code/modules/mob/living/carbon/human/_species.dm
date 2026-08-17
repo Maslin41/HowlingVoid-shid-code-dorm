@@ -1,7 +1,8 @@
 // NOVA EDIT ADDITION START
 // Local defines for now, TODO: put these in their own file with the rest of the offset defines
 #define NOVA_UNDERWEAR_UNDERSHIRT_LAYER (UNIFORM_LAYER + 0.01)
-#define NOVA_BRA_SOCKS_LAYER (UNIFORM_LAYER + 0.02)
+#define NOVA_BRA_LAYER (UNIFORM_LAYER + 0.015)
+#define NOVA_SOCKS_LAYER (UNIFORM_LAYER + 0.02)
 // NOVA EDIT ADDITION END
 /// List of roundstart races' their species_id's
 GLOBAL_LIST_EMPTY(roundstart_races)
@@ -566,6 +567,51 @@ GLOBAL_LIST_EMPTY(features_by_species)
 		H.adjust_brute_loss(0.5 * seconds_per_tick)
 
 /datum/species/proc/can_equip(obj/item/I, slot, disable_warning, mob/living/carbon/human/H, bypass_equip_delay_self = FALSE, ignore_equipped = FALSE, indirect_action = FALSE)
+	if(slot == ITEM_SLOT_EARS_RIGHT)
+		if(no_equip_flags & slot && !(I.is_mod_shell_component() && (modsuit_slot_exceptions & slot)))
+			if(!I.species_exception || !is_type_in_list(src, I.species_exception))
+				return FALSE
+
+		if(!ignore_equipped && H.get_item_by_slot(slot))
+			return FALSE
+
+		if(!(I.slot_flags & ITEM_SLOT_EARS))
+			return FALSE
+
+		if(!H.get_bodypart(BODY_ZONE_HEAD))
+			return FALSE
+
+		return equip_delay_self_check(I, H, bypass_equip_delay_self)
+
+	if(slot & ITEM_SLOT_EXTRA)
+		if((no_equip_flags & slot) == slot && !(I.is_mod_shell_component() && (modsuit_slot_exceptions & slot)))
+			if(!I.species_exception || !is_type_in_list(src, I.species_exception))
+				return FALSE
+
+		if(!ignore_equipped && H.get_item_by_slot(slot))
+			return FALSE
+
+		if(!(I.extra_slot_flags & (slot & ~ITEM_SLOT_EXTRA)))
+			return FALSE
+
+		switch(slot)
+			if(ITEM_SLOT_WRISTS)
+				if(H.num_hands < 2)
+					return FALSE
+				return equip_delay_self_check(I, H, bypass_equip_delay_self)
+			if(ITEM_SLOT_UNDERWEAR)
+				return equip_delay_self_check(I, H, bypass_equip_delay_self)
+			if(ITEM_SLOT_SOCKS)
+				if(H.num_legs < 2)
+					return FALSE
+				return equip_delay_self_check(I, H, bypass_equip_delay_self)
+			if(ITEM_SLOT_SHIRT)
+				return equip_delay_self_check(I, H, bypass_equip_delay_self)
+			if(ITEM_SLOT_BRA)
+				return equip_delay_self_check(I, H, bypass_equip_delay_self)
+
+		return FALSE
+
 	if(no_equip_flags & slot && !(I.is_mod_shell_component() && (modsuit_slot_exceptions & slot))) // NOVA EDIT ADDITION - ORIGINAL: if(no_equip_flags & slot)
 		if(!I.species_exception || !is_type_in_list(src, I.species_exception))
 			return FALSE
@@ -573,7 +619,12 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	// if there's an item in the slot we want, fail
 	if(!ignore_equipped)
 		if(H.get_item_by_slot(slot))
-			return FALSE
+			if(slot != ITEM_SLOT_GLOVES)
+				return FALSE
+			var/obj/item/clothing/gloves/ring/worn_ring = H.gloves
+			var/obj/item/clothing/gloves/new_gloves = I
+			if(!istype(worn_ring) || !istype(new_gloves) || istype(new_gloves, /obj/item/clothing/gloves/ring) || new_gloves.covered_ring)
+				return FALSE
 
 	// this check prevents us from equipping something to a slot it doesn't support, WITH the exceptions of storage slots (pockets, suit storage, and backpacks)
 	// we don't require having those slots defined in the item's slot_flags, so we'll rely on their own checks further down
@@ -831,6 +882,10 @@ GLOBAL_LIST_EMPTY(features_by_species)
 	// Our lower and upper unarmed damage values. Damage is rolled between these two values.
 	var/lower_unarmed_damage = attacking_bodypart.unarmed_damage_low
 	var/upper_unarmed_damage = attacking_bodypart.unarmed_damage_high
+	var/list/howling_unarmed_damage_profile = user.dna?.species?.howling_get_unarmed_damage_profile(user, attacking_bodypart)
+	if(islist(howling_unarmed_damage_profile) && length(howling_unarmed_damage_profile) >= 2)
+		lower_unarmed_damage = howling_unarmed_damage_profile[1]
+		upper_unarmed_damage = max(lower_unarmed_damage, howling_unarmed_damage_profile[2])
 
 	// The presence of TRAIT_STRENGTH increases our upper unarmed damage. This is a damage cap increase.
 	upper_unarmed_damage += HAS_TRAIT(user, TRAIT_STRENGTH) ? 2 : 0
@@ -955,6 +1010,7 @@ GLOBAL_LIST_EMPTY(features_by_species)
 		if(damage >= 9)
 			target.force_say()
 		log_combat(user, target, "punched")
+	target.howling_synthetic_unarmed_feedback(user, attacking_bodypart, atk_effect, limb_sharpness, damage)
 	// NOVA EDIT ADDITION START
 	if(target.try_nut_shot(user, limb_accuracy, staggered))
 		return
@@ -1116,6 +1172,9 @@ GLOBAL_LIST_EMPTY(features_by_species)
  * * humi (required) The mob we will stabilize
  */
 /datum/species/proc/body_temperature_core(mob/living/carbon/human/humi, seconds_per_tick)
+	if(HAS_TRAIT(humi, TRAIT_COLDBLOODED))
+		return
+
 	var/natural_change = get_temp_change_amount(humi.get_body_temp_normal() - humi.coretemperature, 0.06 * seconds_per_tick)
 	humi.adjust_coretemperature(humi.metabolism_efficiency * natural_change)
 

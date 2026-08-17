@@ -11,7 +11,6 @@ import {
   Tooltip,
 } from 'tgui-core/components';
 import { createSearch } from 'tgui-core/string';
-import { CharacterPreview } from '../../common/CharacterPreview'; // NOVA EDIT ADDITION
 
 import {
   type PreferencesMenuData,
@@ -24,6 +23,7 @@ import { useServerPrefs } from '../useServerPrefs';
 import { getRandomization, PreferenceList } from './MainPage';
 import { PersonalityPage } from './PersonalityPage';
 import { usePreferencesLocalization } from './localization';
+import { getCombinedQuirkAugmentBalance } from './quirkBalance';
 
 function getColorValueClass(quirk: Quirk) {
   if (quirk.value > 0) {
@@ -454,47 +454,7 @@ function QuirkPage() {
     }
   });
 
-  const getAugmentsSyncedBalance = () => {
-    let syncedBalance = -data.quirks_balance;
-
-    if (
-      server_data &&
-      server_data.quirks &&
-      data.selected_quirks &&
-      typeof data.default_quirk_balance === 'number'
-    ) {
-      const quirkInfoLocal = server_data.quirks.quirk_info || {};
-      syncedBalance = -data.default_quirk_balance;
-
-      for (const quirkKey of data.selected_quirks) {
-        const selectedQuirk = quirkInfoLocal[quirkKey];
-        if (!selectedQuirk) {
-          continue;
-        }
-        syncedBalance += selectedQuirk.value || 0;
-      }
-    }
-
-    for (const limb of data.limbs_data || []) {
-      const chosen = limb?.chosen_aug;
-      if (!chosen || chosen === 'None') {
-        continue;
-      }
-      syncedBalance += limb?.costs?.[chosen] || 0;
-    }
-
-    for (const organ of data.organs_data || []) {
-      const chosen = organ?.chosen_organ;
-      if (!chosen || chosen === 'Default') {
-        continue;
-      }
-      syncedBalance += organ?.costs?.[chosen] || 0;
-    }
-
-    return syncedBalance;
-  };
-
-  let balance = getAugmentsSyncedBalance();
+  const balance = getCombinedQuirkAugmentBalance(data, server_data, selectedQuirks);
   let positiveQuirks = 0;
 
   for (const selectedQuirkName of selectedQuirks) {
@@ -648,23 +608,6 @@ function QuirkPage() {
         { /* <Icon name="exchange-alt" size={1.5} ml={2} mr={2} /> // NOVA EDIT REMOVAL - moved down */ }
         {/* NOVA EDIT ADDITION START */}
         <Stack vertical fill align="center">
-          {/* Keep the CharacterPreview alive but "hidden", so that traits that affect appearance (e.g. Oversized) refresh rendering calculations immediately. */}
-          <Stack.Item
-            style={{
-              position: 'absolute',
-              left: '-10000px',
-              top: '-10000px',
-              width: '1px',
-              height: '1px',
-              pointerEvents: 'none',
-            }}
-          >
-            <CharacterPreview
-              id={data.character_preview_view}
-              height="1px"
-              width="1px"
-            />
-          </Stack.Item>
           <Icon name="exchange-alt" size={1.5} ml={2} mr={2} />
         </Stack>
         {/* NOVA EDIT ADDITION END */}

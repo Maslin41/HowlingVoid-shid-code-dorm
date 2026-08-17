@@ -303,6 +303,7 @@ GLOBAL_LIST_INIT(unrecommended_builds, list(
 		GLOB.preferences_datums[ckey] = prefs
 	prefs.last_ip = address //these are gonna be used for banning
 	prefs.last_id = computer_id //these are gonna be used for banning
+	send_statpanel_favorites()
 
 	if(fexists(roundend_report_file()))
 		add_verb(src, /client/proc/show_previous_roundend_report)
@@ -1142,6 +1143,19 @@ GLOBAL_LIST_INIT(unrecommended_builds, list(
 		verblist[++verblist.len] = list(verb_to_init.category, verb_to_init.name)
 	src.stat_panel.send_message("init_verbs", list(panel_tabs = panel_tabs, verblist = verblist))
 
+/client/proc/send_statpanel_favorites()
+	if(IsAdminAdvancedProcCall())
+		return
+	if(!stat_panel)
+		return
+	var/list/favorites = list()
+	if(prefs)
+		for(var/favorite in prefs.get_statpanel_favorites())
+			if(!istext(favorite))
+				continue
+			favorites += favorite
+	stat_panel.send_message("update_favorites", favorites)
+
 /client/proc/check_panel_loaded()
 	if(stat_panel.is_ready())
 		return
@@ -1206,6 +1220,8 @@ GLOBAL_LIST_INIT(unrecommended_builds, list(
 	switch(type)
 		if("Update-Verbs")
 			init_verbs()
+			send_statpanel_favorites()
+			return
 		if("Remove-Tabs")
 			panel_tabs -= payload["tab"]
 		if("Send-Tabs")
@@ -1215,6 +1231,58 @@ GLOBAL_LIST_INIT(unrecommended_builds, list(
 		if("Set-Tab")
 			stat_tab = payload["tab"]
 			SSstatpanels.immediate_send_stat_data(src)
+		if("Add-Favorite")
+			var/raw_command = payload?["command"]
+			if(!istext(raw_command) || !prefs)
+				return
+			var/command = trim(raw_command, STATPANEL_FAVORITE_MAX_LENGTH)
+			command = sanitize_text(command, "")
+			if(!length(command))
+				return
+			var/list/current_favorites = prefs.get_statpanel_favorites()
+			if(!(command in current_favorites))
+				current_favorites += command
+				prefs.set_statpanel_favorites(unique_list(current_favorites))
+				prefs.save_preferences()
+			send_statpanel_favorites()
+			return
+		if("Remove-Favorite")
+			var/raw_remove = payload?["command"]
+			if(!istext(raw_remove) || !prefs)
+				return
+			var/to_remove = trim(raw_remove, STATPANEL_FAVORITE_MAX_LENGTH)
+			to_remove = sanitize_text(to_remove, "")
+			var/list/current_favorites = prefs.get_statpanel_favorites()
+			if(!length(to_remove) || !length(current_favorites))
+				send_statpanel_favorites()
+				return
+			if(to_remove in current_favorites)
+				current_favorites -= to_remove
+				prefs.set_statpanel_favorites(current_favorites)
+				prefs.save_preferences()
+			send_statpanel_favorites()
+			return
+		if("Reorder-Favorites")
+			var/list/new_order = payload?["order"]
+			if(!islist(new_order) || !prefs)
+				return
+			var/list/current_favorites = prefs.get_statpanel_favorites()
+			if(!length(new_order) || length(new_order) != length(current_favorites))
+				return
+			var/list/validated = list()
+			for(var/entry in new_order)
+				if(!istext(entry))
+					return
+				var/cleaned = sanitize_text(trim(entry, STATPANEL_FAVORITE_MAX_LENGTH), "")
+				if(!length(cleaned) || !(cleaned in current_favorites))
+					return
+				if(cleaned in validated)
+					return
+				validated += cleaned
+			prefs.set_statpanel_favorites(validated)
+			prefs.save_preferences()
+			send_statpanel_favorites()
+			return
 
 /// Checks if this client has met the days requirement passed in, or if
 /// they are exempt from it.

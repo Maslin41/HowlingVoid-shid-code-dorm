@@ -586,6 +586,8 @@ $department_map: (
       border: 1px solid hsla(36, 20%, 54%, 0.22);
       border-radius: 10px;
       padding: 6px;
+      min-height: 0;
+      overflow: hidden;
       background: linear-gradient(
         180deg,
         hsla(220, 17%, 18%, 0.7) 0%,
@@ -772,6 +774,13 @@ $department_map: (
       .Button:hover {
         border-color: hsla(39, 58%, 61%, 0.65) !important;
       }
+
+      min-height: 0;
+      overflow: hidden;
+
+      > .Stack {
+        min-height: 0;
+      }
     }
 
     &__FieldDropdown,
@@ -866,6 +875,12 @@ $department_map: (
         border: 0 !important;
         background: transparent !important;
       }
+    }
+
+    &__PrefContent {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     &__VisualSlots .Button {
@@ -2590,8 +2605,8 @@ $department_map: (
 }
 
 .PreferencesMenu .PreferencesMenu__Character__Sidebar {
-  flex: 0 0 286px;
-  min-width: 286px;
+  flex: 0 0 332px;
+  min-width: 332px;
   box-sizing: border-box;
 }
 
@@ -2610,8 +2625,36 @@ $department_map: (
 }
 
 .PreferencesMenu .PreferencesMenu__Character__PreviewCell {
-  min-height: 360px;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.PreferencesMenu .PreferencesMenu__Character__PreviewFrame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 320px;
+  min-width: 0;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  margin: 0 auto;
+  position: relative;
+}
+
+.PreferencesMenu .PreferencesMenu__Character__PreviewFrame > * {
+  position: absolute;
+  inset: 0;
+}
+
+.PreferencesMenu .PreferencesMenu__Character__PreviewFrame--medium {
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .PreferencesMenu
@@ -2703,6 +2746,156 @@ $department_map: (
   box-shadow:
     inset 0 1px 0 hsla(0, 0%, 100%, 0.08),
     inset 0 -1px 0 hsla(0, 0%, 0%, 0.2) !important;
+}
+
+.PreferencesMenu__AugmentsDropdown,
+.PreferencesMenu__AugmentsDropdown.Dropdown,
+.PreferencesMenu__AugmentsDropdown.Button,
+.PreferencesMenu__AugmentsDropdown .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown__control,
+.PreferencesMenu__AugmentsDropdown .Dropdown,
+.PreferencesMenu__AugmentsDropdown .Button,
+.PreferencesMenu__AugmentsDropdown .Button--dropdown,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button--dropdown {
+  min-height: 22px;
+}
+
+.PreferencesMenu__AugmentsDropdown.Dropdown,
+.PreferencesMenu__AugmentsDropdown.Button,
+.PreferencesMenu__AugmentsDropdown .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown__control,
+.PreferencesMenu__AugmentsDropdown .Button,
+.PreferencesMenu__AugmentsDropdown .Button--dropdown,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button--dropdown {
+  --button-background: hsla(220, 21%, 14%, 0.99) !important;
+  --color: hsla(220, 21%, 14%, 0.99) !important;
+  border-color: hsla(36, 22%, 48%, 0.64) !important;
+  background: linear-gradient(
+    180deg,
+    hsla(220, 18%, 16%, 0.96) 0%,
+    hsla(221, 20%, 11%, 0.99) 100%
+  ) !important;
+  background-color: hsla(220, 21%, 14%, 0.99) !important;
+  color: hsla(40, 35%, 88%, 0.98) !important;
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.08),
+    inset 0 -1px 0 hsla(0, 0%, 0%, 0.24),
+    0 0 0 1px hsla(36, 35%, 68%, 0.05) !important;
+}
+
+.PreferencesMenu__AugmentsDropdown .Dropdown__selected-text,
+.PreferencesMenu__Augments .Dropdown__selected-text,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__selected-text {
+  border-right-color: hsla(36, 22%, 48%, 0.35) !important;
+}
+
+.PreferencesMenu__AugmentsDropdown .Dropdown__icon,
+.PreferencesMenu__Augments .Dropdown__icon,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__icon {
+  color: hsla(40, 35%, 88%, 0.98) !important;
+}
+
+.PreferencesMenu__AugmentsDropdown .Button__content,
+.PreferencesMenu__AugmentsDropdown.Button .Button__content,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button__content,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown .Button__content {
+  min-width: 0;
+  justify-content: flex-start !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.PreferencesMenu__AugmentsDropdown.Button:hover,
+.PreferencesMenu__AugmentsDropdown .Dropdown__control:hover,
+.PreferencesMenu__Augments .Dropdown__control:hover,
+.PreferencesMenu__AugmentsDropdown .Button:hover,
+.PreferencesMenu__AugmentsDropdown .Button--dropdown:hover,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown:hover,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown:hover,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__control:hover,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button:hover,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button--dropdown:hover {
+  --button-background: hsla(33, 34%, 13%, 0.99) !important;
+  --color: hsla(33, 34%, 13%, 0.99) !important;
+  border-color: hsla(39, 58%, 61%, 0.84) !important;
+  background: linear-gradient(
+    180deg,
+    hsla(38, 30%, 20%, 0.96) 0%,
+    hsla(33, 34%, 13%, 0.99) 100%
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 hsla(42, 45%, 84%, 0.1),
+    0 0 8px hsla(38, 60%, 45%, 0.13) !important;
+}
+
+.PreferencesMenu__AugmentsDropdown.Button.Button--disabled,
+.PreferencesMenu__AugmentsDropdown.Button:disabled,
+.PreferencesMenu__AugmentsDropdown .Dropdown__control--disabled,
+.PreferencesMenu__AugmentsDropdown .Dropdown__control:disabled,
+.PreferencesMenu__Augments .Dropdown__control--disabled,
+.PreferencesMenu__Augments .Dropdown__control:disabled,
+.PreferencesMenu__AugmentsDropdown .Button.Button--disabled,
+.PreferencesMenu__AugmentsDropdown .Button:disabled,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown.Button--disabled,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown:disabled,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__control--disabled,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Dropdown__control:disabled,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button.Button--disabled,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown .Button:disabled {
+  --button-background: hsla(218, 18%, 17%, 0.9) !important;
+  --color: hsla(218, 18%, 17%, 0.9) !important;
+  border-color: hsla(209, 18%, 36%, 0.55) !important;
+  background: linear-gradient(
+    180deg,
+    hsla(214, 15%, 25%, 0.82) 0%,
+    hsla(218, 18%, 17%, 0.9) 100%
+  ) !important;
+  color: hsla(211, 14%, 73%, 0.68) !important;
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.05) !important;
+}
+
+.PreferencesMenu__AugmentsDropdownLabel {
+  color: hsla(210, 18%, 92%, 0.96);
+  font-weight: 700;
+  line-height: 1.35;
+  text-shadow: 0 1px 0 hsla(0, 0%, 0%, 0.55);
+}
+
+.PreferencesMenu__AugmentsDropdown--preview.Dropdown,
+.PreferencesMenu__AugmentsDropdown--preset.Dropdown,
+.PreferencesMenu__AugmentsDropdown--preview.Button,
+.PreferencesMenu__AugmentsDropdown--preset.Button,
+.PreferencesMenu__AugmentsDropdown--preview .Dropdown__control,
+.PreferencesMenu__AugmentsDropdown--preset .Dropdown__control,
+.PreferencesMenu__AugmentsDropdown--preview .Button,
+.PreferencesMenu__AugmentsDropdown--preset .Button,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preview,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preset,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown--preview,
+.PreferencesMenu__Augments .Button.PreferencesMenu__AugmentsDropdown--preset,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preview .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preset .Dropdown__control,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preview .Button,
+.PreferencesMenu__Augments .Dropdown.PreferencesMenu__AugmentsDropdown--preset .Button {
+  --button-background: hsla(220, 21%, 14%, 0.99) !important;
+  --color: hsla(220, 21%, 14%, 0.99) !important;
+  border-color: hsla(36, 22%, 48%, 0.64) !important;
+  background: linear-gradient(
+    180deg,
+    hsla(220, 18%, 16%, 0.96) 0%,
+    hsla(221, 20%, 11%, 0.99) 100%
+  ) !important;
+  background-color: hsla(220, 21%, 14%, 0.99) !important;
+  color: hsla(40, 35%, 88%, 0.98) !important;
 }
 
 .PreferencesMenu__Augments .Button.Button--color--good,
@@ -2986,4 +3179,36 @@ $department_map: (
   [class*='fa-'] {
   color: hsla(132, 95%, 88%, 1) !important;
   text-shadow: 0 0 6px hsla(140, 80%, 45%, 0.35) !important;
+}
+
+.LimbsPage__hover-text {
+  position: relative;
+}
+
+.LimbsPage__hover-text--tooltip-wrapper {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 20;
+  max-width: 280px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.LimbsPage__hover-text--tooltip-wrapper.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.LimbsPage__hover-text--tooltip {
+  padding: 6px 8px;
+  border: 1px solid hsla(36, 22%, 48%, 0.7);
+  border-radius: 6px;
+  background: hsla(220, 20%, 10%, 0.98);
+  color: hsla(210, 18%, 93%, 0.98);
+  box-shadow: 0 8px 16px hsla(0, 0%, 0%, 0.35);
+  font-size: 12px;
+  line-height: 1.35;
 }

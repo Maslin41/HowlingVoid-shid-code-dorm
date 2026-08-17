@@ -185,6 +185,20 @@
 	req_components = list(/datum/stock_part/capacitor = 1)
 	needs_anchored = FALSE
 
+/obj/item/circuitboard/machine/bluespace_shield_generator
+	name = "Bluespace Shield Field Generator"
+	greyscale_colors = CIRCUIT_COLOR_ENGINEERING
+	build_path = /obj/machinery/power/bluespace_shield_generator
+	req_components = list(
+		/obj/item/stack/sheet/plasteel = 100,
+		/obj/item/stack/ore/bluespace_crystal = 50,
+		/datum/stock_part/capacitor/tier4 = 10,
+		/datum/stock_part/scanning_module/tier4 = 10,
+		/datum/stock_part/micro_laser/tier4 = 10,
+		/datum/stock_part/servo/tier4 = 10,
+		/datum/stock_part/matter_bin/tier4 = 10,
+	)
+
 /obj/item/circuitboard/machine/modular_shield_generator/gate
 	name = "Modular Shield Gate"
 	greyscale_colors = CIRCUIT_COLOR_ENGINEERING
@@ -839,6 +853,24 @@
 	name = "[new_name] 3000"
 	to_chat(user, span_notice("You change the circuit board setting to \"[new_name]\"."))
 	return TRUE
+
+/obj/item/circuitboard/machine/autodoc
+	name = "Autodoc Medical System"
+	greyscale_colors = CIRCUIT_COLOR_MEDICAL
+	build_path = /obj/machinery/autodoc
+	req_components = list(
+		/datum/stock_part/servo = 2,
+		/datum/stock_part/matter_bin = 2,
+		/datum/stock_part/micro_laser = 1,
+		/datum/stock_part/scanning_module = 1,
+		/obj/item/scalpel/advanced = 1,
+		/obj/item/cautery/advanced = 1,
+		/obj/item/retractor/advanced = 1,
+		/obj/item/reagent_containers/cup/beaker/large = 1,
+		/obj/item/reagent_containers/cup/beaker = 1,
+		/obj/item/stack/cable_coil = 2,
+		/obj/item/stack/sheet/glass = 2,
+	)
 
 /obj/item/circuitboard/machine/cryo_tube
 	name = "Cryotube"
@@ -1898,6 +1930,7 @@
 	build_path = /obj/machinery/byteforge
 	req_components = list(
 		/datum/stock_part/micro_laser = 1,
+		/datum/stock_part/scanning_module = 1,
 	)
 
 /obj/item/circuitboard/machine/washing_machine

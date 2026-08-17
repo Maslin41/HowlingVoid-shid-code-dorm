@@ -261,17 +261,22 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 			parsed_favs += path
 	favorite_outfits = unique_list(parsed_favs)
 
+	//statpanel favorites
+	var/list/statpanel_favorites = savefile.get_entry("statpanel_favorites", get_statpanel_favorites())
+
+	var/list/cleaned_statpanel_favorites = list()
+	for(var/favorite in statpanel_favorites)
+		if(!istext(favorite))
+			continue
+		var/cleaned = trim(favorite, STATPANEL_FAVORITE_MAX_LENGTH)
+		cleaned = sanitize_text(cleaned, "")
+		if(!length(cleaned))
+			continue
+		cleaned_statpanel_favorites += cleaned
+	set_statpanel_favorites(unique_list(cleaned_statpanel_favorites))
+
 	// Custom hotkeys
 	key_bindings = savefile.get_entry("key_bindings")
-
-	var/datum/preference/show_in_directory_pref = GLOB.preference_entries[/datum/preference/toggle/show_in_directory]
-	var/list/player_save_data = savefile.get_entry()
-	var/show_in_directory_key = show_in_directory_pref.savefile_key
-	var/normalized_show_in_directory = FALSE
-
-	if(!isnull(player_save_data) && (show_in_directory_key in player_save_data) && !player_save_data[show_in_directory_key])
-		write_preference(show_in_directory_pref, TRUE)
-		normalized_show_in_directory = TRUE
 
 	//try to fix any outdated data if necessary
 	if(SHOULD_UPDATE_DATA(data_validity_integer))
@@ -310,8 +315,6 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 		default_slot = old_default_slot
 		max_save_slots = old_max_save_slots
 		save_preferences()
-	else if(normalized_show_in_directory)
-		savefile.save()
 
 	return TRUE
 
@@ -346,6 +349,7 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 	savefile.set_entry("key_bindings", key_bindings)
 	savefile.set_entry("hearted_until", (hearted_until > world.realtime ? hearted_until : null))
 	savefile.set_entry("favorite_outfits", favorite_outfits)
+	savefile.set_entry("statpanel_favorites", get_statpanel_favorites())
 	savefile.save()
 	return TRUE
 
@@ -381,6 +385,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	//Quirks
 	all_quirks = save_data?["all_quirks"]
+	//Custom emote panel
+	custom_emote_panel = SANITIZE_LIST(save_data?["custom_emote_panel"])
 	load_character_nova(save_data) // NOVA EDIT ADDITION
 
 	//try to fix any outdated data if necessary
@@ -444,6 +450,8 @@ SAVEFILE UPDATING/VERSIONING - 'Simplified', or rather, more coder-friendly ~Car
 
 	//Quirks
 	save_data["all_quirks"] = all_quirks
+	//Custom emote panel
+	save_data["custom_emote_panel"] = custom_emote_panel
 	save_character_nova(save_data) // NOVA EDIT ADDITION
 
 	return TRUE

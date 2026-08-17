@@ -583,8 +583,20 @@
 			ITEM_SLOT_FEET, ITEM_SLOT_GLOVES,\
 			ITEM_SLOT_EARS, ITEM_SLOT_EYES,\
 			ITEM_SLOT_BELT, ITEM_SLOT_SUITSTORE,\
-			ITEM_SLOT_LPOCKET, ITEM_SLOT_RPOCKET,\
-			ITEM_SLOT_DEX_STORAGE\
+		)
+		if((W.extra_slot_flags & ITEM_SLOT_UNDERWEAR) == ITEM_SLOT_UNDERWEAR)
+			slot_priority |= ITEM_SLOT_UNDERWEAR
+		if((W.extra_slot_flags & ITEM_SLOT_SOCKS) == ITEM_SLOT_SOCKS)
+			slot_priority |= ITEM_SLOT_SOCKS
+		if((W.extra_slot_flags & ITEM_SLOT_SHIRT) == ITEM_SLOT_SHIRT)
+			slot_priority |= ITEM_SLOT_SHIRT
+		if((W.extra_slot_flags & ITEM_SLOT_BRA) == ITEM_SLOT_BRA)
+			slot_priority |= ITEM_SLOT_BRA
+		if((W.extra_slot_flags & ITEM_SLOT_WRISTS) == ITEM_SLOT_WRISTS)
+			slot_priority |= ITEM_SLOT_WRISTS
+		slot_priority += list(
+			ITEM_SLOT_LPOCKET, ITEM_SLOT_RPOCKET,
+			ITEM_SLOT_DEX_STORAGE,
 		)
 
 	// NOVA EDIT ADDITION START - CUSTOMIZATION

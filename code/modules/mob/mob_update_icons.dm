@@ -7,6 +7,25 @@
 
 ///Updates every item slot passed into it.
 /mob/proc/update_clothing(slot_flags)
+	if(slot_flags & ITEM_SLOT_EXTRA)
+		var/handled_extra_slots = ITEM_SLOT_EXTRA
+		if((slot_flags & ITEM_SLOT_WRISTS) == ITEM_SLOT_WRISTS)
+			update_worn_wrists()
+			handled_extra_slots |= (ITEM_SLOT_WRISTS & ~ITEM_SLOT_EXTRA)
+		if((slot_flags & ITEM_SLOT_UNDERWEAR) == ITEM_SLOT_UNDERWEAR)
+			update_worn_underwear()
+			handled_extra_slots |= (ITEM_SLOT_UNDERWEAR & ~ITEM_SLOT_EXTRA)
+		if((slot_flags & ITEM_SLOT_SHIRT) == ITEM_SLOT_SHIRT)
+			update_worn_shirt()
+			handled_extra_slots |= (ITEM_SLOT_SHIRT & ~ITEM_SLOT_EXTRA)
+		if((slot_flags & ITEM_SLOT_BRA) == ITEM_SLOT_BRA)
+			update_worn_bra()
+			handled_extra_slots |= (ITEM_SLOT_BRA & ~ITEM_SLOT_EXTRA)
+		if((slot_flags & ITEM_SLOT_SOCKS) == ITEM_SLOT_SOCKS)
+			update_worn_socks()
+			handled_extra_slots |= (ITEM_SLOT_SOCKS & ~ITEM_SLOT_EXTRA)
+		slot_flags &= ~handled_extra_slots
+
 	if(slot_flags & ITEM_SLOT_BACK)
 		update_worn_back()
 	if(slot_flags & ITEM_SLOT_MASK)
@@ -21,7 +40,9 @@
 		update_worn_belt()
 	if(slot_flags & ITEM_SLOT_ID)
 		update_worn_id()
-	if(slot_flags & ITEM_SLOT_EARS)
+	if(slot_flags & ITEM_SLOT_EARS_RIGHT)
+		update_worn_ears_extra()
+	if((slot_flags & ITEM_SLOT_EARS) && !(slot_flags & ITEM_SLOT_EARS_RIGHT))
 		update_worn_ears()
 	if(slot_flags & ITEM_SLOT_EYES)
 		update_worn_glasses()
@@ -112,6 +133,30 @@
 
 ///Updates the glasses overlay & HUD element.
 /mob/proc/update_worn_gloves()
+	return
+
+///Updates the underwear overlay & HUD element.
+/mob/proc/update_worn_underwear()
+	return
+
+///Updates the shirt overlay & HUD element.
+/mob/proc/update_worn_shirt()
+	return
+
+///Updates the bra overlay & HUD element.
+/mob/proc/update_worn_bra()
+	return
+
+///Updates the socks overlay & HUD element.
+/mob/proc/update_worn_socks()
+	return
+
+///Updates the wrists overlay & HUD element.
+/mob/proc/update_worn_wrists()
+	return
+
+///Updates the right ear overlay & HUD element.
+/mob/proc/update_worn_ears_extra()
 	return
 
 ///Updates the suit storage overlay & HUD element.

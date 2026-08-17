@@ -2,7 +2,33 @@
 // IRON HEART
 // =========================================================
 (() => {
-  const MENU_SETTINGS = window.__HOWLING_MENU_SETTINGS || {};
+  const getMenuSettings = () =>
+    (window.__HOWLING_MENU_SETTINGS = {
+      musicEnabled: true,
+      musicVolume: 0.6,
+      interfaceLanguage: 'russian',
+      ...(window.__HOWLING_MENU_SETTINGS || {}),
+    });
+
+  const body = document.body;
+  const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+  const menuList = document.querySelector('.menu-list');
+  const menuDivider = document.querySelector('.menu-divider');
+  const menuWrapper = document.querySelector('.menu-wrapper');
+
+  const startOverlay = document.querySelector('.start-overlay');
+  const startButton = document.querySelector('.start-button');
+  const skipIntroToggle = document.getElementById('skip-intro');
+
+  const introOverlay = document.querySelector('.intro-overlay');
+  const introLineSmall = document.querySelector('.intro-line-small');
+  const introLineMain = document.querySelector('.intro-line-main');
+  const introLineSub = document.querySelector('.intro-line-sub');
+
+  const titleMain = document.querySelector('.menu-title-main');
+  const selectSound = document.getElementById('select-sound');
+  const bgm = document.getElementById('bgm');
+
   const INTRO_DURATION_MS = 8000;
   const INTRO_COPY = {
     small: 'A build by',
@@ -22,8 +48,36 @@
     },
   ];
 
+  const AUDIO_FADE_IN_MS = 2400;
+  const SELECT_SOUND_VOLUME = 0.06;
+  const START_OVERLAY_REMOVE_MS = 650;
+  const INTRO_VISIBLE_DELAY_MS = 40;
+  const INTRO_FADEOUT_MS = 900;
+  const TITLE_LETTER_DELAY_MS = 55;
+
+  const PHASE_CLASSES = ['iron-heart-phase-hold', 'iron-heart-phase-collapse'];
+
   const timeouts = new Set();
   let fadeRaf = 0;
+  let activeIndex = 0;
+  let started = false;
+  let introVisible = false;
+  let menuReady = false;
+
+  const controller = new AbortController();
+  const { signal } = controller;
+  const webglCleanup = window.__HOWLING_INSTALL_WEBGL_BACKDROP({
+    readyClass: 'iron-heart-webgl-ready',
+    colors: ['#020406', '#11243a', '#731728', '#05070d'],
+    intensity: 0.48,
+    vignette: 1,
+  });
+
+  const clamp01 = (value) => Math.max(0, Math.min(1, value));
+  const getConfiguredMenuVolume = () =>
+    clamp01(Number(getMenuSettings().musicVolume ?? 0.6));
+  const isMenuMusicEnabled = () =>
+    getMenuSettings().musicEnabled !== false && getConfiguredMenuVolume() > 0;
 
   const schedule = (fn, delay) => {
     const id = setTimeout(() => {
@@ -34,48 +88,21 @@
     return id;
   };
 
-  const clearScheduled = () => {
+  function clearScheduled() {
     timeouts.forEach((id) => clearTimeout(id));
     timeouts.clear();
-  };
+  }
 
-  const ac = new AbortController();
-  const on = (node, eventName, handler, options = {}) => {
+  function on(node, eventName, handler, options = {}) {
     if (!node) {
       return;
     }
+
     node.addEventListener(eventName, handler, {
       ...options,
-      signal: ac.signal,
+      signal,
     });
-  };
-
-  const body = document.body;
-  const menuItems = Array.from(document.querySelectorAll('.menu-item'));
-  const menuList = document.querySelector('.menu-list');
-  const menuDivider = document.querySelector('.menu-divider');
-  const menuWrapper = document.querySelector('.menu-wrapper');
-  const startOverlay = document.querySelector('.start-overlay');
-  const startButton = document.querySelector('.start-button');
-  const skipIntroToggle = document.getElementById('skip-intro');
-  const introOverlay = document.querySelector('.intro-overlay');
-  const introLineSmall = document.querySelector('.intro-line-small');
-  const introLineMain = document.querySelector('.intro-line-main');
-  const introLineSub = document.querySelector('.intro-line-sub');
-  const titleMain = document.querySelector('.menu-title-main');
-  const selectSound = document.getElementById('select-sound');
-  const bgm = document.getElementById('bgm');
-
-  let activeIndex = 0;
-  let started = false;
-  let introVisible = false;
-  let menuReady = false;
-
-  const clamp01 = (value) => Math.max(0, Math.min(1, value));
-  const getConfiguredMenuVolume = () =>
-    clamp01(Number(MENU_SETTINGS.musicVolume) || 0);
-  const isMenuMusicEnabled = () =>
-    MENU_SETTINGS.musicEnabled !== false && getConfiguredMenuVolume() > 0;
+  }
 
   function playSelect() {
     if (!selectSound) {
@@ -84,7 +111,7 @@
 
     try {
       selectSound.currentTime = 0;
-      selectSound.volume = 0.06;
+      selectSound.volume = SELECT_SOUND_VOLUME;
       const playPromise = selectSound.play();
       if (playPromise && playPromise.catch) {
         playPromise.catch(() => {});
@@ -115,7 +142,10 @@
 
       const span = document.createElement('span');
       span.className = 'title-letter';
-      span.style.setProperty('--delay', String(visibleIndex * 55));
+      span.style.setProperty(
+        '--delay',
+        String(visibleIndex * TITLE_LETTER_DELAY_MS),
+      );
       span.textContent = character;
       fragment.appendChild(span);
       visibleIndex += 1;
@@ -140,10 +170,7 @@
   }
 
   function clearPhaseClasses() {
-    body.classList.remove(
-      'iron-heart-phase-hold',
-      'iron-heart-phase-collapse',
-    );
+    body.classList.remove(...PHASE_CLASSES);
   }
 
   function applyIntroPhase(phase) {
@@ -169,7 +196,7 @@
     introOverlay.classList.add('intro-overlay--active');
     schedule(() => {
       introOverlay.classList.add('intro-overlay--visible');
-    }, 40);
+    }, INTRO_VISIBLE_DELAY_MS);
   }
 
   function hideIntroOverlay() {
@@ -182,7 +209,7 @@
     schedule(() => {
       introOverlay.classList.remove('intro-overlay--active');
       introVisible = false;
-    }, 900);
+    }, INTRO_FADEOUT_MS);
   }
 
   function revealMenu() {
@@ -197,6 +224,15 @@
     menuDivider?.classList.add('menu-divider--visible');
     menuList?.classList.add('menu-list--visible');
     setActiveItem(activeIndex);
+  }
+
+  function hideStartOverlay() {
+    if (startButton) {
+      startButton.disabled = true;
+    }
+
+    startOverlay?.classList.add('start-overlay--hidden');
+    schedule(() => startOverlay?.remove(), START_OVERLAY_REMOVE_MS);
   }
 
   function fadeBgmTo(targetVolume, duration) {
@@ -246,23 +282,23 @@
       const playPromise = bgm.play();
       if (playPromise && playPromise.then) {
         playPromise
-          .then(() => fadeBgmTo(getConfiguredMenuVolume(), 2400))
+          .then(() => fadeBgmTo(getConfiguredMenuVolume(), AUDIO_FADE_IN_MS))
           .catch(() => {});
       }
     } catch {}
   }
 
+  function scheduleIntroPhase(phase) {
+    schedule(() => applyIntroPhase(phase), phase.at);
+  }
+
   function runIntroTimeline() {
     showIntroOverlay();
-
-    INTRO_PHASES.forEach((phase) => {
-      schedule(() => applyIntroPhase(phase), phase.at);
-    });
-
+    INTRO_PHASES.forEach(scheduleIntroPhase);
     schedule(revealMenu, INTRO_DURATION_MS);
   }
 
-  function skipToMenu() {
+  function hideIntroImmediate() {
     if (introOverlay) {
       introOverlay.classList.remove(
         'intro-overlay--active',
@@ -272,6 +308,10 @@
       introOverlay.classList.add('intro-overlay--hidden');
       introVisible = false;
     }
+  }
+
+  function skipToMenu() {
+    hideIntroImmediate();
     revealMenu();
   }
 
@@ -295,16 +335,10 @@
     }
 
     started = true;
-    MENU_SETTINGS.introAccepted = true;
+    getMenuSettings().introAccepted = true;
     playSelect();
 
-    if (startButton) {
-      startButton.disabled = true;
-    }
-
-    startOverlay?.classList.add('start-overlay--hidden');
-    schedule(() => startOverlay?.remove(), 650);
-
+    hideStartOverlay();
     startBgm();
 
     if (skipIntroToggle && skipIntroToggle.checked) {
@@ -356,6 +390,7 @@
       fadeRaf = 0;
     }
 
-    ac.abort();
+    controller.abort();
+    webglCleanup();
   };
 })();

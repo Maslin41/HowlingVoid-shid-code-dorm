@@ -57,6 +57,13 @@
 	if (!isnull(should_strip_proc_path) && !call(source, should_strip_proc_path)(user))
 		return
 
+	// Do not open strip menu when user is in combat/harm mode
+	// Cyborgs are excluded here because they have inverted logic above (they need combat mode ON to strip instead of buckling)
+	if(isliving(user) && !iscyborg(user))
+		var/mob/living/living_user = user
+		if(living_user.combat_mode)
+			return
+
 	// Snowflake for mob scooping
 	if (isliving(source))
 		var/mob/living/mob = source
@@ -274,10 +281,22 @@
 		return STRIPPABLE_OBSCURING_NONE
 
 	var/mob/living/carbon/carbon_source = source
-	if (hidden_slots_to_inventory_slots(carbon_source.obscured_slots) & item_slot)
+	var/obscured_inventory_slots = hidden_slots_to_inventory_slots(carbon_source.obscured_slots)
+	var/covered_inventory_slots = hidden_slots_to_inventory_slots(carbon_source.covered_slots)
+
+	if(item_slot & ITEM_SLOT_EXTRA)
+		if((obscured_inventory_slots & item_slot) == item_slot)
+			return STRIPPABLE_OBSCURING_COMPLETELY
+
+		if((covered_inventory_slots & item_slot) == item_slot)
+			return STRIPPABLE_OBSCURING_INACCESSIBLE
+
+		return STRIPPABLE_OBSCURING_NONE
+
+	if (obscured_inventory_slots & item_slot)
 		return STRIPPABLE_OBSCURING_COMPLETELY
 
-	if (hidden_slots_to_inventory_slots(carbon_source.covered_slots) & item_slot)
+	if (covered_inventory_slots & item_slot)
 		return STRIPPABLE_OBSCURING_INACCESSIBLE
 
 	return STRIPPABLE_OBSCURING_NONE

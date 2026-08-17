@@ -110,6 +110,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_BRAINLESS_CARBON "brainless_carbon"
 #define TRAIT_BADDNA "baddna"
 #define TRAIT_CLUMSY "clumsy"
+/// Mob is cold blooded and cannot regulate their core temperature naturally.
+#define TRAIT_COLDBLOODED "coldblooded"
 /// Trait that means you are capable of holding items in some form
 #define TRAIT_CAN_HOLD_ITEMS "can_hold_items"
 /// Trait that means you're capable of throwing things
@@ -452,6 +454,7 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_SECURITY_HUD_ID_ONLY "sec_hud_lesser"
 #define TRAIT_BLOOD_HUD "blood_hud"
 #define TRAIT_ABDUCTOR_HUD "abductor_hud"
+#define TRAIT_XENO_HUD "xeno_hud"
 /// Stop the user from seeing the sechud. Only works for trait handled sechuds.
 #define TRAIT_BLOCK_SECHUD "block_sechud"
 /// for something granting you a diagnostic hud
@@ -464,6 +467,14 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_NOFLASH "noflash"
 /// prevents xeno huggies implanting skeletons
 #define TRAIT_XENO_IMMUNE "xeno_immune"
+/// Trait source for xeno innate abilities.
+#define TRAIT_XENO_INNATE "xeno_innate"
+/// Trait source for effects added by a xeno ability.
+#define TRAIT_XENO_ABILITY_GIVEN "xeno_ability_given"
+/// Determines if something can receive healing from a xeno.
+#define TRAIT_XENO_HEAL_AURA "trait_xeno_heal_aura"
+/// Trait source for traits added by fortify ability.
+#define TRAIT_XENO_FORTIFY "xeno_fortify"
 /// Allows the species to equip items that normally require a jumpsuit without having one equipped. Used by golems.
 #define TRAIT_NO_JUMPSUIT "no_jumpsuit"
 #define TRAIT_NAIVE "naive"
@@ -622,6 +633,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 
 /// `do_teleport` will not allow this atom to teleport
 #define TRAIT_NO_TELEPORT "no-teleport"
+/// Blocks use of movement-focused abilities (teleports, dashes, shapeshifts, etc.).
+#define TRAIT_MOBILITY_ABILITIES_BLOCKED "mobility_abilities_blocked"
 /// This atom is a secluded location, which is counted as out of bounds.
 /// Anything that enters this atom's contents should react if it wants to stay in bounds.
 #define TRAIT_SECLUDED_LOCATION "secluded_loc"
@@ -996,6 +1009,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_ALLOW_HERETIC_CASTING "allow_heretic_casting"
 /// Designates a heart as a living heart for a heretic.
 #define TRAIT_LIVING_HEART "living_heart"
+/// Mobs with this trait cannot be selected as heretic sacrifice targets.
+#define TRAIT_NO_HERETIC_TARGET "no_heretic_target"
 /// Trait given to all participants in a heretic arena
 #define TRAIT_ELDRITCH_ARENA_PARTICIPANT "eldritch_arena_participant"
 /// Trait given to heretic summons, making them immune to heretic spells

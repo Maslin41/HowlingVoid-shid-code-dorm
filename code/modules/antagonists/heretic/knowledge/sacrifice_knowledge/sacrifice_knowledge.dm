@@ -32,10 +32,8 @@
 	/// Evil organs we can put in people
 	var/static/list/grantable_organs = list(
 		/obj/item/organ/appendix/corrupt,
-		/obj/item/organ/eyes/corrupt,
 		/obj/item/organ/heart/corrupt,
 		/obj/item/organ/liver/corrupt,
-		/obj/item/organ/lungs/corrupt,
 		/obj/item/organ/stomach/corrupt,
 		/obj/item/organ/tongue/corrupt,
 	)
@@ -87,7 +85,7 @@
 		if(sacrifice.stat < SOFT_CRIT)
 			atoms -= sacrifice
 		// Otherwise if it's neither a target nor a cultist, remove it
-		else if(!(sacrifice in heretic_datum.sac_targets) && !IS_CULTIST(sacrifice))
+		else if(!(sacrifice in heretic_datum.sac_targets) && !IS_CULTIST(sacrifice) && !IS_CLOCK(sacrifice))
 			atoms -= sacrifice
 
 	// Finally, return TRUE if we have a target in the list
@@ -102,7 +100,7 @@
 	var/datum/antagonist/heretic/heretic_datum = GET_HERETIC(user)
 	// Force it to work if the sacrifice is a cultist, even if there's no targets.
 	var/mob/living/carbon/human/sac = selected_atoms[1]
-	if(!LAZYLEN(heretic_datum.sac_targets) && !IS_CULTIST(sac))
+	if(!LAZYLEN(heretic_datum.sac_targets) && !IS_CULTIST(sac) && !IS_CLOCK(sac))
 		if(obtain_targets(user, heretic_datum = heretic_datum))
 			return TRUE
 		else
@@ -131,10 +129,12 @@
 			continue
 		if(possible_target.current.stat == DEAD)
 			continue
-		// NOVA EDIT ADDITION BEGIN - Antag opt-in (Only security and command can be targetted)
-		if (!CONFIG_GET(flag/disable_antag_opt_in_preferences) && !possible_target.assigned_role?.heretic_sac_target)
+		if(HAS_TRAIT(possible_target, TRAIT_MIND_TEMPORARILY_GONE))
 			continue
-		// NOVA EDIT ADDITION END
+		if(is_centcom_level(possible_target.current.z))
+			continue
+		if(HAS_TRAIT(possible_target.current, TRAIT_NO_HERETIC_TARGET))
+			continue
 
 		valid_targets += possible_target
 
@@ -164,15 +164,12 @@
 			valid_targets -= sec_mind
 			break
 
-	// NOVA CHANGE START - ORIGINAL -- Antag Opt In (Only sec and command may be targetted if config is set as 0)
 	// Third target, someone in their department.
-	if(CONFIG_GET(flag/disable_antag_opt_in_preferences))
-		for(var/datum/mind/department_mind as anything in shuffle(valid_targets))
-			if(department_mind.assigned_role?.departments_bitflags & user.mind.assigned_role?.departments_bitflags)
-				final_targets += department_mind
-				valid_targets -= department_mind
-				break
-	// NOVA EDIT CHANGE END
+	for(var/datum/mind/department_mind as anything in shuffle(valid_targets))
+		if(department_mind.assigned_role?.departments_bitflags & user.mind.assigned_role?.departments_bitflags)
+			final_targets += department_mind
+			valid_targets -= department_mind
+			break
 
 	// Now grab completely random targets until we'll full
 	var/target_sanity = 0
@@ -204,7 +201,7 @@
 	var/mob/living/carbon/human/sacrifice = locate() in selected_atoms
 	if(!sacrifice)
 		CRASH("[type] sacrifice_process didn't have a human in the atoms list. How'd it make it so far?")
-	if(!(sacrifice in heretic_datum.sac_targets) && !IS_CULTIST(sacrifice))
+	if(!(sacrifice in heretic_datum.sac_targets) && !IS_CULTIST(sacrifice) && !IS_CLOCK(sacrifice))
 		CRASH("[type] sacrifice_process managed to get a non-target, non-cult human. This is incorrect.")
 
 	if(sacrifice.mind)
@@ -215,19 +212,21 @@
 	var/feedback = "Your patrons accept your offer"
 	var/sac_job_flag = sacrifice.mind?.assigned_role?.job_flags | sacrifice.last_mind?.assigned_role?.job_flags
 	var/datum/antagonist/cult/cultist_datum = GET_CULTIST(sacrifice)
+	var/is_clock_cultist = IS_CLOCK(sacrifice)
 	// Heads give 3 points, cultists give 1 point (and a special reward), normal sacrifices give 2 points.
 	heretic_datum.total_sacrifices++
+	check_sacrifice_total(user, heretic_datum)
 	if((sac_job_flag & JOB_HEAD_OF_STAFF))
 		heretic_datum.adjust_knowledge_points(3)
 		heretic_datum.high_value_sacrifices++
 		feedback += " <i>graciously</i>"
-	if(cultist_datum)
+	if(cultist_datum || is_clock_cultist)
 		heretic_datum.adjust_knowledge_points(1)
 		grant_reward(user, sacrifice, loc)
 		// easier to read
 		var/rewards_given = heretic_datum.rewards_given
 		// Chance for it to send a warning to cultists, higher with each reward. Stops after 5 because they probably got the hint by then.
-		if(prob(min(15 * rewards_given)) && (rewards_given <= 5))
+		if(cultist_datum && prob(min(15 * rewards_given)) && (rewards_given <= 5))
 			for(var/datum/mind/mind as anything in cultist_datum.cult_team.members)
 				if(mind.current)
 					SEND_SOUND(mind.current, 'sound/effects/magic/clockwork/narsie_attack.ogg')
@@ -239,6 +238,11 @@
 			to_chat(user, span_narsiesmall("How DARE you!? I will see you destroyed for this."))
 			var/non_flavor_warning = span_cult_bold("You feel that your action has attracted ") + span_hypnophrase("attention") + span_cult_bold(".")
 			to_chat(user, non_flavor_warning)
+		else if(is_clock_cultist)
+			for(var/datum/mind/clock_mind as anything in get_antag_minds(/datum/antagonist/clock_cultist))
+				if(clock_mind.current && clock_mind.current != sacrifice)
+					SEND_SOUND(clock_mind.current, 'modular_nova/modules/clock_cult/sound/magic/scripture_tier_up.ogg')
+					to_chat(clock_mind.current, span_brass("A vile heretic has sacrificed one of Ratvar's servants. Let the engine remember this insult."))
 		return
 	else
 		heretic_datum.adjust_knowledge_points(2)
@@ -249,6 +253,19 @@
 		return
 
 	sacrifice.apply_status_effect(/datum/status_effect/heretic_curse, user)
+
+
+/datum/heretic_knowledge/hunt_and_sacrifice/proc/check_sacrifice_total(mob/living/user, datum/antagonist/heretic/heretic_datum)
+	var/datum/objective/minor_sacrifice/sac_objective = locate() in heretic_datum.objectives
+	if(!sac_objective)
+		return
+	if(heretic_datum.total_sacrifices == (sac_objective.target_amount - 2))
+		priority_announce(
+			text = "High levels of eldri[generate_heretic_text()] energy detected - Threat levels elevated stop [generate_heretic_text(4)][user.real_name][generate_heretic_text(4)] at all costs. station loss imminent!",
+			title = generate_heretic_text(),
+			sound = 'sound/music/antag/heretic/void_lore.ogg',
+			color_override = "purple",
+		)
 
 
 /datum/heretic_knowledge/hunt_and_sacrifice/proc/grant_reward(mob/living/user, mob/living/sacrifice, turf/loc)
